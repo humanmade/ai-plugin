@@ -1,0 +1,17 @@
+{
+	"id": "chatcmpl-749RtOvtVgpt8bc4F8gbAT17BafUh",
+	"object": "chat.completion",
+	"created": 1681223989,
+	"model": "gpt-3.5-turbo-0301",
+	"usage": { "prompt_tokens": 119, "completion_tokens": 119, "total_tokens": 238 },
+	"choices": [
+		{
+			"message": {
+				"role": "assistant",
+				"content": "<!-- wp:cover {\"overlayColor\":\"secondary\"} -->\n<div class=\"wp-block-cover\"><span aria-hidden=\"true\" class=\"wp-block-cover__background has-secondary-background-color has-background-dim-100 has-background-dim\"></span><div class=\"wp-block-cover__inner-container\"><!-- wp:paragraph {\"align\":\"center\",\"placeholder\":\"Write title…\",\"fontSize\":\"large\"} -->\n<p class=\"has-text-align-center has-large-font-size\">A nice title</p>\n<!-- /wp:paragraph --></div></div>\n<!-- /wp:cover -->"
+			},
+			"finish_reason": "stop",
+			"index": 0
+		}
+	]
+}

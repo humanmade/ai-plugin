@@ -1,0 +1,9 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 2,
+	"title": "Chart",
+	"name": "ai/chart",
+	"category": "media",
+	"icon": "universal-access-alt",
+	"editorScript": "file:../../build/chart-block.js"
+}

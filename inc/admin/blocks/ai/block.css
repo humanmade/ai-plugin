@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+	.animation-delay-200 {
+		animation-delay: 0.2s;
+	}
+	.animation-delay-400 {
+		animation-delay: 0.4s;
+	}
+}
+
+.wp-block-ai-insert::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: 0;
+	left: 0;
+	background: #f7faff;
+	border-radius: 6px;
+	pointer-events: none;
+	z-index: 1;
+}
+
+.wp-block-ai-insert.has-blocks::before {
+	top: -25px;
+	bottom: -25px;
+	right: -25px;
+	left: -25px;
+}
+
+.wp-block-ai-insert {
+	position: relative;
+}
+
+.wp-block-ai-insert > * {
+	position: relative;
+	z-index: 2;
+}
+
+.ai-yoast-description {
+	margin-left: auto;
+}
+
+.ai-yoast-description + button.yst-replacevar__button-insert {
+	margin-left: 8px;
+}

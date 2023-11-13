@@ -1,0 +1,9 @@
+{
+	"apiVersion": 2,
+	"title": "AI Generation",
+	"name": "ai/insert",
+	"category": "layout",
+	"icon": "universal-access-alt",
+	"editorScript": "file:../../build/block.js",
+	"editorStyle": "file:../../build/block.css"
+}

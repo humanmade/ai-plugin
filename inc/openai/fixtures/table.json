@@ -1,0 +1,17 @@
+{
+	"id": "chatcmpl-749RtOvtVgpt8bc4F8gbAT17BafUh",
+	"object": "chat.completion",
+	"created": 1681223989,
+	"model": "gpt-3.5-turbo-0301",
+	"usage": { "prompt_tokens": 119, "completion_tokens": 119, "total_tokens": 238 },
+	"choices": [
+		{
+			"message": {
+				"role": "assistant",
+				"content": "<!-- wp:table -->\n<figure class=\"wp-block-table\"><table><tbody><tr><td>Team</td><td>Score</td></tr><tr><td>Wolves</td><td>2</td></tr><tr><td>City</td><td>3</td></tr></tbody></table></figure>\n<!-- /wp:table -->"
+			},
+			"finish_reason": "stop",
+			"index": 0
+		}
+	]
+}
