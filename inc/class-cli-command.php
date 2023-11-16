@@ -40,7 +40,7 @@ class CLI_Command {
 			$prompt = fgets( STDIN );
 		}
 
-		$openai = OpenAI\HTTP_Client::get_instance();
+		$openai = OpenAI\Client::get_instance();
 		$edit = $openai->edit(
 			input: $post->post_content,
 			instruction: $prompt,
@@ -71,11 +71,8 @@ class CLI_Command {
 	public function chat( array $args, array $args_assoc ) : void {
 		ini_set( 'display_errors', 1 );
 
-		if ( empty( $args_assoc['test-client'] ) ) {
-			$openai = OpenAI\HTTP_Client::get_instance();
-		} else {
-			$openai = OpenAI\Test_Client::get_instance();
-		}
+		$openai = OpenAI\Client::get_instance();
+
 		$messages = [];
 
 		if ( ! empty( $args_assoc['system-message'] ) ) {
@@ -131,11 +128,8 @@ class CLI_Command {
 	public function prompt( array $args, array $args_assoc ) : void {
 		ini_set( 'display_errors', 1 );
 
-		if ( empty( $args_assoc['test-client'] ) ) {
-			$openai = OpenAI\HTTP_Client::get_instance();
-		} else {
-			$openai = OpenAI\Test_Client::get_instance();
-		}
+		$openai = OpenAI\Client::get_instance();
+
 		$messages = [];
 
 		$messages[] = new OpenAI\Message(
@@ -194,11 +188,8 @@ class CLI_Command {
 		$functions = array_slice( $functions, 0, 64 );
 		// $functions = [ $functions['get_wp_v2_posts'] ];
 
-		if ( empty( $args_assoc['test-client'] ) ) {
-			$openai = OpenAI\HTTP_Client::get_instance();
-		} else {
-			$openai = OpenAI\Test_Client::get_instance();
-		}
+		$openai = OpenAI\Client::get_instance();
+
 		$messages = [];
 
 		if ( ! empty( $args_assoc['system-message'] ) ) {
@@ -477,7 +468,7 @@ class CLI_Command {
 	 *
 	 */
 	public function my_assistant( $args, $args_assoc ) {
-		$openai = $openai = OpenAI\HTTP_Client::get_instance();
+		$openai = $openai = OpenAI\Client::get_instance();
 		wp_set_current_user( 1 );
 
 		$thread_id = get_user_meta( 1, 'ai_my_assistant_thread_id', true );
@@ -595,8 +586,43 @@ class CLI_Command {
 	 *
 	 */
 	public function get_embeddings( $args ) {
-		$openai = OpenAI\HTTP_Client::get_instance();
+		$openai = OpenAI\Client::get_instance();
 		$embeddings = $openai->get_embeddings( $args[0] );
 		print_r( $embeddings );
+	}
+
+	/**
+	 * Create an image generation
+	 *
+	 * @subcommand create-image-generation
+	 *
+	 * ## OPTIONS
+	 *
+	 * <prompt>
+	 * : The image generation prompt
+	 *
+	 * <output-directory>
+	 * : The directory to output the images to
+	 *
+	 * [--model=<model>]
+	 * : The model to use for image generation.
+	 *
+	 */
+	public function create_image_generation( $args, $args_assoc ) {
+		$args_assoc = wp_parse_args( $args_assoc, [
+			'model' => 'dall-e-3',
+		] );
+		$openai = OpenAI\Client::get_instance();
+		$images = $openai->create_image_generation(
+			prompt: $args[0],
+			model: $args_assoc['model'],
+			response_format: 'b64_json',
+		);
+
+		foreach ( $images as $number => $image ) {
+			file_put_contents( trailingslashit( realpath( $args[1] ) ) . $number . '.png', base64_decode( $image->b64_json ) );
+		}
+
+		WP_CLI::success( sprintf( 'Generated %d image(s)', count( $images ) ) );
 	}
 }

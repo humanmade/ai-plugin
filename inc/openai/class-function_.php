@@ -44,8 +44,7 @@ class Function_ implements JsonSerializable {
 		$doc_block = DocBlockFactory::createInstance();
 		$doc_block = $doc_block->create( $reflection->getDocComment() );
 
-		$name = $reflection->getName();
-		$name = str_replace('\\', '_', $name);
+		$name = $reflection->getShortName();
 		$name = strtolower($name);
 
 		$function = new Function_(
@@ -73,9 +72,11 @@ class Function_ implements JsonSerializable {
 				$param_schema['default'] = $param->getDefaultValue();
 			}
 
-			$param_doc = reset( array_filter( $param_docs, function ( Param $param_doc ) use ( $param ) : bool {
+			$param_docs = array_filter( $param_docs, function ( Param $param_doc ) use ( $param ) : bool {
 				return $param_doc->getVariableName() === $param->getName();
-			} ) );
+			} );
+
+			$param_doc = reset( $param_docs );
 
 			if ( $param_doc ) {
 				$param_schema['description'] = (string) $param_doc->getDescription();

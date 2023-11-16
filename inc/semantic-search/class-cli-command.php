@@ -22,7 +22,7 @@ class CLI_Command {
 	 *
 	 */
 	public function get_post_embedding( $args ) {
-		$openai = OpenAI\HTTP_Client::get_instance();
+		$openai = OpenAI\Client::get_instance();
 		$post = get_post( $args[0] );
 		$input = get_post_input( $post );
 		$embedding = get_post_embedding( $post );

@@ -1,7 +1,7 @@
 import React from 'react';
 import Markdown from 'react-markdown';
 import { Message } from './types';
-import Loading from '../../blocks/ai/loading';
+import Loading from '../../../src/loading';
 
 const roleNameMap = {
 	assistant: 'WordPress Assistant',

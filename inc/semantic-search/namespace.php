@@ -109,7 +109,7 @@ function get_post_embedding( WP_Post $post ) {
  * @param string $string Arbitrary string to get embedding for.
  */
 function get_embedding( string $string ) : OpenAI\Embedding {
-	$openai = OpenAI\HTTP_Client::get_instance();
+	$openai = OpenAI\Client::get_instance();
 	$embeddings = $openai->get_embeddings( $string );
 	return $embeddings[0];
 }

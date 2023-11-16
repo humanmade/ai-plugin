@@ -25,3 +25,8 @@ It's out belief that AI will revolutionize the way software is built, and the wa
 ### AWS Rekognition Integration
 
 ### Azure Vision Integration
+
+## Usage
+
+### Configuring
+

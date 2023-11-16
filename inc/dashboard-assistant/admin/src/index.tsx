@@ -1,10 +1,10 @@
 import { createRoot } from 'react-dom';
 import React, { useEffect } from 'react';
-import { streamResponse } from '../../blocks/ai/utils';
+import { streamResponse } from '../../../src/utils';
 import MessageComponent from './message';
 import StepComponent from './step';
-import { SseEvent } from './types';
-import Loading from '../../blocks/ai/loading';
+import { Message, SseEvent } from './types';
+import Loading from '../../../src/loading';
 
 
 function addNewMessage( message: SseEvent, events: SseEvent[] ) : SseEvent[] {
@@ -21,7 +21,6 @@ function addNewMessage( message: SseEvent, events: SseEvent[] ) : SseEvent[] {
 
 			// If there's a step for this message, remove the step.
 			const stepIndex = newEvents.findIndex( step => step._message_type === 'step' && step.step_details.message_creation?.message_id === message.id );
-			console.log( stepIndex )
 			if ( stepIndex > -1 ) {
 				newEvents.splice( stepIndex, 1 );
 			}
@@ -45,7 +44,6 @@ function addNewMessage( message: SseEvent, events: SseEvent[] ) : SseEvent[] {
 function MyAssistant() {
 
 	const [ events, setEvents ] = React.useState<SseEvent[]>( [] );
-	const [ sendingMessages, setSendingMessages ] = React.useState<Message[]>( [] );
 	const [ waiting, setWaiting ] = React.useState( false );
 
 	async function streamEvents( response: Response ) {
@@ -67,7 +65,7 @@ function MyAssistant() {
 
 	async function onSubmit( e: React.FormEvent<HTMLFormElement> ) {
 		e.preventDefault();
-		const input = e.target.querySelector( 'input' );
+		const input = (e.target as Element ).querySelector( 'input' )!;
 		let prompt = input.value;
 		setWaiting( true );
 		input.value = '';
@@ -75,14 +73,19 @@ function MyAssistant() {
 		setWaiting( false );
 	}
 
+	async function onClear() {
+		await apiFetchRaw( `${ window.dashboardAssistant.api.root }ai/v1/my-assistant`, {
+			method: 'DELETE',
+		} );
+		setEvents( [] );
+	}
+
 	return <div className="flex flex-col py-6 flex-grow max-w-5xl mx-auto">
-		<h1 className="px-6">Your AI Assistant</h1>
-		<div className="flex-grow overflow-x-auto px-12 mb-6 flex flex-col-reverse ">
-			<div className="animate-pulse">
-				{ sendingMessages.map( message => (
-					<MessageComponent key={ message.id } message={ message } />
-				))}
-			</div>
+		<div className="flex justify-between ">
+			<h1 className="px-6">Your AI Assistant</h1>
+			<button className="p-0  self-center border-none bg-transparent text-gray-400 hover:text-gray-800" onClick={ onClear }><span className="dashicons dashicons-table-row-delete"></span></button>
+		</div>
+		<div className="flex-grow overflow-x-auto px-12 mb-6 flex flex-col-reverse">
 			{ [...events].reverse().map( event => (
 				event._message_type === 'step' ?
 					<StepComponent key={ event.id } step={ event } />
@@ -107,21 +110,8 @@ if ( wrapper ) {
 	root.render( <MyAssistant /> );
 }
 
-// if ( module.hot ) {
-// 	module.hot.accept('./my-assistant.tsx', () => {
-// 		console.log( 'updated' );
-// 		const MyAssistant = require( './my-assistant.tsx' ).default;
-// 		const root = createRoot( wrapper );
-// 		root.render( <MyAssistant /> );
-// 	} );
-
-// }
-
-
-
-
 async function fetchMessages() {
-	const response = await apiFetchRaw( '/?rest_route=/ai/v1/my-assistant&stream=true', {
+	const response = await apiFetchRaw( `${ window.dashboardAssistant.api.root }ai/v1/my-assistant?stream=true`, {
 		headers: {
 			'Content-Type': 'application/json',
 			Accept: 'text/event-stream',
@@ -138,7 +128,6 @@ async function fetchMessages() {
 			// no op.
 		}
 		throw new Error( text );
-
 	}
 
 	return response;
@@ -146,7 +135,7 @@ async function fetchMessages() {
 }
 
 async function sendMessage( prompt: string ) {
-	const response = await apiFetchRaw( '/?rest_route=/ai/v1/my-assistant', {
+	const response = await apiFetchRaw( `${ window.dashboardAssistant.api.root }ai/v1/my-assistant`, {
 		headers: {
 			'Content-Type': 'application/json',
 			Accept: 'text/event-stream',
@@ -168,7 +157,6 @@ async function sendMessage( prompt: string ) {
 			// no op.
 		}
 		throw new Error( text );
-
 	}
 
 	return response;
@@ -177,7 +165,7 @@ async function sendMessage( prompt: string ) {
 export async function apiFetchRaw(input: RequestInfo | URL, init: RequestInit) : Promise<Response> {
 	init.headers = {
 		...init.headers,
-		// ['X-WP-Nonce']: window.AIBlock.nonce
+		['X-WP-Nonce']: window.dashboardAssistant.api.nonce
 	};
 	const response = await fetch(input, init);
 	return response;

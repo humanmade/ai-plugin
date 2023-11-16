@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Step } from './types';
 import MessageComponent from './message';
-import Loading from '../../blocks/ai/loading';
+import Loading from '../../../src/loading';
 
 export default function StepComponent( { step }: { step: Step } ) {
 	if ( step.step_details.type === 'message_creation' ) {

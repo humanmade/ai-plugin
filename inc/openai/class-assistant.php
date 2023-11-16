@@ -25,7 +25,7 @@ class Assistant {
 		public ?string $instructions,
 		public array $tools,
 		public array $file_ids,
-		protected array $registered_functions = [],
+		public array $registered_functions = [],
 	) {}
 
 	public static function from_data( $json ) : static {

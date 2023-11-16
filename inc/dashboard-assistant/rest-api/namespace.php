@@ -1,6 +1,6 @@
 <?php
 
-namespace AI\REST_API;
+namespace AI\Dashboard_Assistant\REST_API;
 
 use AI\OpenAI\Message;
 use AI\OpenAI;
@@ -12,7 +12,6 @@ use AI\OpenAI\Thread;
 use AI\OpenAI\Thread_Message;
 use AI\OpenAI\Thread_New_Message;
 use Exception;
-use Iterator;
 use Traversable;
 use WP_Error;
 use WP_REST_Response;
@@ -23,66 +22,86 @@ function bootstrap() : void {
 }
 
 function register_rest_routes() : void {
-	register_rest_route( 'ai/v1', 'alt-text', [
+	register_rest_route( 'ai/v1', 'my-assistant', [
 		[
 			'methods' => 'POST',
-			'callback' => alt_text_callback(...),
+			'callback' => my_assistant_post_callback(...),
+			'permission_callback' => function () : bool {
+				return current_user_can( 'ai_dashboard_assistant' );
+			},
 			'args' => [
-				'attachment_id' => [
-					'type' => 'number',
-					'required' => true,
+				'content' => [
+					'type' => 'string',
+				],
+				'stream' => [
+					'type' => 'boolean',
+					'default' => false,
 				],
 			],
-		]
-	] );
-
-	register_rest_route( 'ai/v1', 'chart', [
-		[
-			'methods' => 'POST',
-			'callback' => chart_callback(...),
-			'args' => [
-				'messages' => [
-					'default' => [],
-					'type' => 'array',
-					'items' => [
-						'type' => 'object',
-						'properties' => [
-							'role' => [
-								'type' => 'string',
-								'enum' => [
-									'user',
-									'assistant',
-								],
-							],
-							'content' => [
-								'type' => 'string',
-							],
-							'function_call' => [
-								'type' => 'object',
-								'properties' => [
-									'name' => [
-										'type' => 'string',
-										'required' => true,
-									],
-									'arguments' => [
-										'type' => 'string',
-										'required' => true,
-									],
-								],
-							],
-						],
-					]
-				]
-			],
-		]
-	] );
-
-	register_rest_route( 'ai/v1', 'files/(?P<id>[^/]+)', [
+		],
 		[
 			'methods' => 'GET',
-			'callback' => get_file_callback(...),
-		]
+			'callback' => my_assistant_get_callback(...),
+			'args' => [
+				'stream' => [
+					'type' => 'boolean',
+					'default' => false,
+				],
+			],
+		],
+		[
+			'methods' => 'DELETE',
+			'callback' => my_assistant_delete_callback(...),
+		],
 	] );
+}
+
+function insert_callback( WP_REST_Request $request ) : WP_REST_Response|WP_Error {
+
+	$openai = OpenAI\Client::get_instance();
+	$messages = [];
+
+	$system_prompt = 'You are an assistant that writes WordPress gutenberg code and says nothing else. You only reply in Gutenberg HTML format including HTML comments for WordPress blocks. All responses must be valid Gutenberg HTML code. Any formatting should always use HTML when I ask you to link things, make them bold, etc. Don\'t make any remarks about what you\'re doing, just give me the Gutenberg code.';
+
+	if ( $request['content'] ) {
+		$system_prompt .= ' You are writing a page that has the content: ' . $request['content'];
+	}
+
+	$messages[] = new Message(
+		role: 'system',
+		content: $system_prompt,
+	);
+
+	foreach ( $request['messages'] as $message ) {
+		$messages[] = new Message(
+			role: $message['role'],
+			content: $message['content'],
+		);
+	}
+
+	$messages[] = new Message(
+		role: 'system',
+		content: 'Remember to output in Gutenberg HTML format including HTML comments for WordPress blocks. Nothing extra.',
+	);
+
+	if ( $request['stream'] ) {
+		$stream = $openai->chat_streamed(
+			messages: $messages,
+			temperature: 0,
+		);
+		stream_response( $stream );
+		exit;
+	}
+	try {
+		$response = $openai->chat(
+			messages: $messages,
+			temperature: 0,
+		);
+	} catch ( Exception $e ) {
+		return rest_ensure_response( new WP_Error( 'openai-api-error', $e->getMessage(), [ 'code' => 400 ] ) );
+	}
+
+	return rest_ensure_response( $response->choices[0]->message );
 }
 
 function alt_text_callback( WP_REST_Request $request ) : WP_REST_Response|WP_Error {
@@ -92,7 +111,7 @@ function alt_text_callback( WP_REST_Request $request ) : WP_REST_Response|WP_Err
 	$caption = get_the_excerpt( $attachment );
 	$filename = pathinfo( get_attached_file( $attachment->ID ), PATHINFO_FILENAME );
 	$title = get_the_title( $attachment );
-	$azure = Azure_Vision\HTTP_Client::get_instance();
+	$azure = Azure_Vision\Client::get_instance();
 
 	$image_data = file_get_contents( get_attached_file( $attachment->ID ) );
 
@@ -199,7 +218,6 @@ function chart_callback( WP_REST_Request $request ) : WP_REST_Response|WP_Error 
 }
 
 function send_messages( OpenAI\Client $openai, array $messages ) : array {
-
 	$chart_types = [
 		'doughnut',
 		'line',
@@ -397,6 +415,30 @@ function send_messages( OpenAI\Client $openai, array $messages ) : array {
 	return $messages;
 }
 
+/**
+ * Run a Chat AI call.
+ */
+function chat_callback( WP_REST_Request $request ) {
+	$params = $request->get_params();
+	$params['site_title'] = get_bloginfo( 'name' );
+	$params['query'] = 'chat';
+
+	$response = get_streaming_client()->post( '/ai', [
+		'json' => $params,
+		'headers' => [
+			'Authorization' => 'Bearer ' . Accelerate\get_altis_dashboard_oauth2_client_id(),
+		],
+	] );
+
+	if ( $request['stream'] ) {
+		$message = stream_response( $response );
+		exit;
+	}
+	$response = $response->getBody()->getContents();
+	$response = json_decode( $response );
+	return rest_ensure_response( $response->choices[0]->message );
+}
+
 function stream_response( Traversable $stream ) : void {
 	ini_set( 'output_buffering', 'off' ); // @codingStandardsIgnoreLine
 	ini_set( 'zlib.output_compression', false ); // @codingStandardsIgnoreLine
@@ -419,11 +461,97 @@ function start_stream() {
 	header( 'X-Accel-Buffering: no' );
 }
 
+/**
+ *
+ * @param Thread_Message[] $stream
+ * @return void
+ */
+function stream_thread_messages( $stream, OpenAI\Client $client ) : void {
+	foreach ( $stream as $message ) {
+		printf( "id: %s\n", $message->id ); // phpcs:ignore
+		echo "event: message\n"; // phpcs:ignore
+		echo 'data: ' . wp_json_encode( $message ) . "\n\n";
+		flush();
+		wp_ob_end_flush_all();
+	}
+}
 
-function get_file_callback( WP_REST_Request $request ) {
+/**
+ *
+ * @param Thread_Run_Step[] $stream
+ * @return void
+ */
+function stream_thread_run_steps( $stream, OpenAI\Client $client ) : void {
+	foreach ( $stream as $step ) {
+		printf( "id: %s\n", $step->id ); // phpcs:ignore
+		echo "event: step\n"; // phpcs:ignore
+		echo 'data: ' . wp_json_encode( $step ) . "\n\n";
+		flush();
+		wp_ob_end_flush_all();
+		// Check for message completed steps and get the message.
+		if ( $step->step_details->type === 'message_creation' && $step->status === 'completed' ) {
+			$message = $client->get_thread_message( $step->thread_id, $step->step_details->message_creation->message_id );
+			stream_thread_messages( [ $message ], $client );
+		}
+	}
+}
+
+function my_assistant_get_callback( WP_REST_Request $request ) {
 	$openai = $openai = OpenAI\Client::get_instance();
-	$response = $openai->get_file_contents( $request['id'] );
-	header( 'Content-Type: image/png' );
-	echo wp_remote_retrieve_body( $response );
-	exit;
+
+	$thread_id = get_user_meta( 1, 'ai_my_assistant_thread_id', true );
+	if ( ! $thread_id ) {
+		$thread = $openai->create_thread();
+		update_user_meta( 1, 'ai_my_assistant_thread_id', $thread->id );
+	}
+
+	$thread = new Thread( id: $thread_id );
+	$messages = array_reverse( $openai->get_thread_messages( $thread_id, 20, 'desc' ) );
+
+	// If the thread is currently running, resume it.
+	if ( $request['stream'] ) {
+		start_stream();
+		stream_thread_messages( $messages, $openai );
+		$resumed_steps_iterator = $thread->resume( $openai );
+		if ( $resumed_steps_iterator ) {
+			stream_thread_run_steps( $resumed_steps_iterator, $openai );
+		}
+		exit;
+	} else {
+		return $messages;
+	}
+}
+
+function my_assistant_post_callback( WP_REST_Request $request ) {
+	$openai = $openai = OpenAI\Client::get_instance();
+	$thread_id = get_user_meta( 1, 'ai_my_assistant_thread_id', true );
+
+	$thread = new Thread( id: $thread_id );
+	$message = $openai->create_thread_message( new Thread_New_Message(
+		role: 'user',
+		thread_id: $thread->id,
+		content: $request['content'],
+	) );
+
+	if ( $request['stream'] ) {
+		start_stream();
+		stream_thread_messages( [ $message ], $openai );
+		stream_thread_run_steps( $thread->run( $openai ), $openai );
+		exit;
+	} else {
+		$messages = [ $message ];
+		foreach ( $thread->run( $openai ) as $message ) {
+			$messages[] = $message;
+		}
+		return $messages;
+	}
+}
+
+function my_assistant_delete_callback() {
+	$openai = $openai = OpenAI\Client::get_instance();
+	$thread_id = get_user_meta( 1, 'ai_my_assistant_thread_id', true );
+	$openai->delete_thread( $thread_id );
+	// Create a new thread for the user, as we always want a thread for the dashboard assistant.
+	$thread = $openai->create_thread();
+	update_user_meta( 1, 'ai_my_assistant_thread_id', $thread->id );
 }
