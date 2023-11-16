@@ -3,12 +3,11 @@
 namespace AI\Admin;
 
 function bootstrap() : void {
-	add_action( 'init', __NAMESPACE__ . '\\register_blocks' );
-	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\enqueue_admin_script' );
-	add_action( 'admin_menu', __NAMESPACE__ . '\\add_plugin_menu' );
-	add_action( 'admin_init', __NAMESPACE__ . '\\register_settings_fields' );
-	add_action( 'init', __NAMESPACE__ . '\\register_settings' );
-	add_action( 'wp_ajax_image-editor', __NAMESPACE__ . '\\change_attachment_mimetype_on_background_removal', 0 );
+	add_action( 'init', register_blocks( ... ) );
+	add_action( 'admin_enqueue_scripts', enqueue_admin_script( ... ) );
+	add_action( 'admin_menu', add_plugin_menu( ... ) );
+	add_action( 'admin_init', register_settings_fields( ... ) );
+	add_action( 'init', register_settings( ... ) );
 }
 
 function register_blocks() : void {

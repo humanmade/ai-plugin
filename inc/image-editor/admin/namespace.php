@@ -3,7 +3,7 @@
 namespace AI\Image_Editor\Admin;
 
 function bootstrap() : void {
-	add_action( 'wp_ajax_image-editor', __NAMESPACE__ . '\\change_attachment_mimetype_on_background_removal', 0 );
+	add_action( 'wp_ajax_image-editor', change_attachment_mimetype_on_background_removal( ... ), 0 );
 }
 
 function enqueue_admin_script() : void {

@@ -75,6 +75,7 @@ declare module '@wordpress/blocks' {
 
 interface Window {
 	AIBlock: {
-		nonce: string
+		nonce: string,
+		root: string,
 	}
 }

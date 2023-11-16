@@ -139,6 +139,7 @@ function insert_callback( WP_REST_Request $request ) : WP_REST_Response|WP_Error
 		$response = $openai->chat(
 			messages: $messages,
 			temperature: 0,
+			model: 'gpt-4-1106-preview',
 		);
 	} catch ( Exception $e ) {
 		return rest_ensure_response( new WP_Error( 'openai-api-error', $e->getMessage(), [ 'code' => 400 ] ) );

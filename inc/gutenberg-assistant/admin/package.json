@@ -17,6 +17,6 @@
   },
   "scripts": {
     "start": "wp-scripts start --webpack-copy-php --hot=true --https --allowed-hosts=all blocks/ai/block.js & tailwindcss -i ./tailwind.css -o ./build/tailwind.css --watch",
-    "build": "wp-scripts build --webpack-copy-php --https --allowed-hosts=all blocks/ai/block.js & tailwindcss -i ./tailwind.css -o ./build/tailwind.css"
+    "build": "wp-scripts build blocks/ai/block.js & tailwindcss -i ./tailwind.css -o ./build/tailwind.css"
   }
 }

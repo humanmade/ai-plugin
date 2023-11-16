@@ -4,7 +4,7 @@ import { useState, useRef } from '@wordpress/element';
 import { PluginSidebar, PluginSidebarMoreMenuItem } from '@wordpress/edit-post';
 
 import Icon from './icon';
-import Loading from './loading';
+import Loading from '../../../../src/loading';
 import { chat, streamResponse } from './utils';
 
 export default function Chat() {

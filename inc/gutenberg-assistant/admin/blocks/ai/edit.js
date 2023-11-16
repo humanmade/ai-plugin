@@ -4,7 +4,7 @@ import { useDispatch, useSelect } from '@wordpress/data';
 import { useState, useRef, useEffect } from '@wordpress/element';
 
 import useAiSuperpowers from './useAiSuperpowers';
-import Loading from './loading';
+import Loading from '../../../../src/loading';
 
 function InputButton( props ) {
 	return (

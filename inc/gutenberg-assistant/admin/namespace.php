@@ -4,6 +4,7 @@ namespace AI\Gutenberg_Assistant\Admin;
 
 function bootstrap() : void {
 	add_action( 'init', register_blocks( ... ) );
+	add_action( 'admin_enqueue_scripts', enqueue_admin_script( ... ) );
 }
 
 function register_blocks() : void {
@@ -16,6 +17,7 @@ function enqueue_admin_script() : void {
 		'AIBlock',
 		[
 			'nonce' => wp_create_nonce( 'wp_rest' ),
+			'root' => rest_url(),
 		]
 	);
 

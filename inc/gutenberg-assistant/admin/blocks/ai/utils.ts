@@ -17,7 +17,7 @@ export async function generateBlocks(
 	availableBlocks: string[],
 	signal?: AbortSignal | null
 ) {
-	const response = await apiFetchRaw( '/?rest_route=/ai/v1/insert', {
+	const response = await apiFetchRaw( `${ window.AIBlock.root }ai/v1/insert`, {
 		headers: {
 			'Content-Type': 'application/json',
 			Accept: 'text/event-stream',
@@ -78,7 +78,7 @@ export async function chat(
 	post: any,
 	signal?: AbortSignal | null
 ) {
-	const response = await apiFetchRaw( '/?rest_route=/ai/v1/chat', {
+	const response = await apiFetchRaw( `${ window.AIBlock.root }ai/v1/chat`, {
 		headers: {
 			'Content-Type': 'application/json',
 			Accept: 'text/event-stream',
