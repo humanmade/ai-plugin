@@ -72,7 +72,7 @@ export default function Chat() {
 			};
 
 			for await ( const text of streamResponse( response ) ) {
-				message.content += text;
+				message.content += text.content;
 				setMessages( [ ...newMessages, message ] );
 				messageWindow.current?.scrollTo( 0, messageWindow.current?.scrollHeight );
 			}

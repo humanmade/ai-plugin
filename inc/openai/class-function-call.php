@@ -8,6 +8,7 @@ class Function_Call implements JsonSerializable {
 	public function __construct(
 		public string $name,
 		public array $arguments,
+		public ?string $output,
 	) {}
 
 	public static function from_data( $json ) : static {
@@ -15,6 +16,7 @@ class Function_Call implements JsonSerializable {
 		return new static(
 			name: $json->name,
 			arguments: is_array( $args ) ? $args : [ $args ],
+			output: $json->output ?? null,
 		);
 	}
 
@@ -22,6 +24,7 @@ class Function_Call implements JsonSerializable {
 		return [
 			'name' => $this->name,
 			'arguments' => json_encode( $this->arguments ),
+			'output' => $this->output,
 		];
 	}
 

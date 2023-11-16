@@ -21,6 +21,18 @@ require_once __DIR__ . '/inc/openai/class-chat.php';
 require_once __DIR__ . '/inc/openai/class-chat-stream.php';
 require_once __DIR__ . '/inc/openai/class-test-chat-stream.php';
 require_once __DIR__ . '/inc/openai/class-usage.php';
+require_once __DIR__ . '/inc/openai/class-assistant.php';
+require_once __DIR__ . '/inc/openai/class-thread.php';
+require_once __DIR__ . '/inc/openai/class-thread-message.php';
+require_once __DIR__ . '/inc/openai/class-thread-new-message.php';
+require_once __DIR__ . '/inc/openai/class-thread-run.php';
+require_once __DIR__ . '/inc/openai/class-thread-run-step.php';
+require_once __DIR__ . '/inc/openai/class-embedding.php';
 require_once __DIR__ . '/inc/segmind/class-client.php';
+require_once __DIR__ . '/inc/semantic-search/namespace.php';
+require_once __DIR__ . '/inc/semantic-search/class-cli-command.php';
 
 AI\bootstrap();
+AI\Semantic_Search\bootstrap();
+
+

@@ -9,6 +9,12 @@
     ],
     "require": {
         "openai-php/client": "~0.4",
-        "aws/aws-sdk-php": "~3.278"
+        "aws/aws-sdk-php": "~3.278",
+        "phpdocumentor/reflection-docblock": "^5.3"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
     }
 }

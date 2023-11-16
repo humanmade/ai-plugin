@@ -28,7 +28,7 @@ class HTTP_Client implements Client {
 
 		$use_azure = get_option( 'microsoft_azure_openai_endpoint' );
 
-		if ( $use_azure ) {
+		if ( false && $use_azure ) {
 			$azure_api_key = get_option( 'microsoft_azure_openai_api_key' );
 			$azure_api_version = get_option( 'microsoft_azure_openai_api_version' );
 			$azure_api_endpoint = get_option( 'microsoft_azure_openai_endpoint' );
@@ -177,6 +177,7 @@ class HTTP_Client implements Client {
 			'method' => $method,
 			'headers' => [
 				'Content-Type' => 'application/json',
+				'OpenAI-Beta' => 'assistants=v1',
 			],
 			'timeout' => 60, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout -- Intentionally longer as OpenAI can take a while to respond.
 		];
@@ -188,11 +189,13 @@ class HTTP_Client implements Client {
 			$args['headers']['Authorization'] = "Bearer $this->api_key";
 		}
 
-		if ($method === 'POST' ) {
-			$args['body'] = wp_json_encode($data);
+		if ( $method === 'POST' ) {
+			$args['body'] = wp_json_encode( $data );
+		} else {
+			$url = add_query_arg( $data, $url );
 		}
 
-		$response = wp_remote_request($url, $args);
+		$response = wp_remote_request( $url, $args );
 
 		if ( is_wp_error( $response ) ) {
 			throw new Exception( esc_html( $response->get_error_message() ) );
@@ -204,5 +207,209 @@ class HTTP_Client implements Client {
 		}
 
 		return $response;
+	}
+
+	public function create_assisstant(
+		string $model,
+		string $name = null,
+		string $description = null,
+		string $instructions = null,
+		array $tools = [],
+		array $file_ids = [],
+	) : Assistant {
+		$response = $this->request( '/assistants', 'POST', [
+			'model' => $model,
+			'name' => $name,
+			'description' => $description,
+			'instructions' => $instructions,
+			'tools' => $tools,
+			'file_ids' => $file_ids,
+
+		] );
+		return Assistant::from_data( json_decode( wp_remote_retrieve_body( $response ) ) );
+	}
+
+	public function update_assisstant(
+		string $id,
+		string $model,
+		string $name = null,
+		string $description = null,
+		string $instructions = null,
+		array $tools = [],
+		array $file_ids = [],
+	) : Assistant {
+		$response = $this->request( sprintf( '/assistants/%s', $id ), 'POST', [
+			'model' => $model,
+			'name' => $name,
+			'description' => $description,
+			'instructions' => $instructions,
+			'tools' => $tools,
+			'file_ids' => $file_ids,
+		] );
+		return Assistant::from_data( json_decode( wp_remote_retrieve_body( $response ) ) );
+	}
+
+	public function get_assistant(
+		string $id,
+	) : Assistant {
+		$response = $this->request( sprintf( '/assistants/%s', $id ), 'GET' );
+		return Assistant::from_data( json_decode( wp_remote_retrieve_body( $response ) ) );
+	}
+
+	public function create_thread(
+		array $messages,
+	) : Thread {
+		$response = $this->request( '/threads', 'POST' );
+		return Thread::from_data( json_decode( wp_remote_retrieve_body( $response ) ) );
+	}
+
+	public function create_thread_message(
+		Thread_New_Message $message
+	) : Thread_Message {
+		$response = $this->request( sprintf( '/threads/%s/messages', $message->thread_id ), 'POST', $message->jsonSerialize() );
+		return Thread_Message::from_data( json_decode( wp_remote_retrieve_body( $response ) ) );
+	}
+
+	/**
+	 * Returns a list of messages for a given thread.
+	 *
+	 * @param string $thread_id
+	 * @param integer $limit
+	 * @param string $order
+	 * @param string|null $after
+	 * @param string|null $before
+	 * @return Thread_Message[]
+	 */
+	public function get_thread_messages(
+		string $thread_id,
+		int $limit = 20,
+		string $order = 'desc',
+		string $after = null,
+		string $before = null,
+	) : array {
+		$response = $this->request( sprintf( '/threads/%s/messages', $thread_id ), 'GET', [
+			'limit' => $limit,
+			'order' => $order,
+			'after' => $after,
+			'before' => $before,
+		] );
+		$messages = json_decode( wp_remote_retrieve_body( $response ) )->data;
+		$messages = array_map( Thread_Message::from_data(...), $messages );
+		return $messages;
+	}
+
+		/**
+	 * @return Thread_Message
+	 */
+	public function get_thread_message(
+		string $thread_id,
+		string $message_id,
+	) : Thread_Message {
+		$response = $this->request( sprintf( '/threads/%s/messages/%s', $thread_id, $message_id ), 'GET' );
+		$message = json_decode( wp_remote_retrieve_body( $response ) );
+		$message = Thread_Message::from_data( $message );
+		return $message;
+	}
+
+	/**
+	 * Returns a list of messages for a given thread.
+	 *
+	 * @param string $thread_id
+	 */
+	public function run_thread(
+		string $thread_id,
+		string $assistant_id,
+		?string $model = null,
+		?string $instructions = null,
+		?array $tools = null,
+	) : Thread_Run {
+		$response = $this->request( sprintf( '/threads/%s/runs', $thread_id ), 'POST', [
+			'assistant_id' => $assistant_id,
+			'model' => $model,
+			'instructions' => $instructions,
+			'tools' => $tools,
+		] );
+		$run = Thread_Run::from_data( json_decode( wp_remote_retrieve_body( $response ) ) );
+		return $run;
+	}
+
+		/**
+	 * Retrieve a run
+	 *
+	 * @param string $run_id
+	 */
+	public function get_thread_run(
+		string $thread_id,
+		string $run_id,
+	) : Thread_Run {
+		$response = $this->request( sprintf( '/threads/%s/runs/%s', $thread_id, $run_id ), 'GET' );
+		$run = Thread_Run::from_data( json_decode( wp_remote_retrieve_body( $response ) ) );
+		return $run;
+	}
+
+	public function list_thread_runs(
+		string $thread_id,
+	) : array {
+		$response = $this->request( sprintf( '/threads/%s/runs', $thread_id ), 'GET' );
+
+		$runs = array_map( Thread_Run::from_data( ... ), json_decode( wp_remote_retrieve_body( $response ) )->data );
+		return $runs;
+	}
+
+	/**
+	 * @return Thread_Run_Step[]
+	 */
+	public function list_thread_run_steps(
+		string $thread_id,
+		string $run_id,
+		int $limit = 20,
+		string $order = 'desc',
+		string $after = null,
+		string $before = null,
+	) : array {
+		$response = $this->request( sprintf( '/threads/%s/runs/%s/steps', $thread_id, $run_id ), 'GET', [
+			'limit' => $limit,
+			'order' => $order,
+			'after' => $after,
+			'before' => $before,
+		] );
+		$runs = array_map( Thread_Run_Step::from_data( ... ), json_decode( wp_remote_retrieve_body( $response ) )->data );
+		return $runs;
+	}
+
+		/**
+	 * @param Thread_Run_Tool_Output[] $tools_output
+	 *
+	 */
+	public function submit_tool_outputs(
+		string $thread_id,
+		string $run_id,
+		array $tool_outputs
+	) : Thread_Run {
+		$response = $this->request( sprintf( '/threads/%s/runs/%s/submit_tool_outputs', $thread_id, $run_id ), 'POST', [
+			'tool_outputs' => $tool_outputs,
+		] );
+		$run = Thread_Run::from_data( json_decode( wp_remote_retrieve_body( $response ) ) );
+		return $run;
+	}
+
+	public function get_file_contents(
+		string $file_id,
+	) : array {
+		$response = $this->request( sprintf( '/files/%s/content', $file_id ), 'GET' );
+		return $response;
+	}
+
+	public function get_embeddings(
+		string $input,
+		string $model = 'text-embedding-ada-002',
+		string $encoding_format = 'float',
+	) : array {
+		$response = $this->request( '/embeddings', 'POST', [
+			'input' => $input,
+			'model' => $model,
+			'encoding_format' => $encoding_format,
+		] );
+		return array_map( Embedding::from_data( ... ), json_decode( wp_remote_retrieve_body( $response ) )->data );
 	}
 }

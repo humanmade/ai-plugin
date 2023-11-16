@@ -17,10 +17,13 @@ function register_blocks() : void {
 }
 
 function enqueue_admin_script() : void {
-	wp_enqueue_script( 'alt-text-js', plugin_dir_url( __FILE__ ) . '/src/alt-text.js', [ 'jquery', 'wp-api-fetch' ], null, true );
+	// wp_enqueue_script( 'alt-text-js', plugin_dir_url( __FILE__ ) . '/src/alt-text.js', [ 'jquery', 'wp-api-fetch' ], null, true );
 
-	$upscale = include __DIR__ . '/build/upscale.asset.php';
-	wp_enqueue_script( 'upscale-js', plugin_dir_url( __FILE__ ) . '/build/upscale.js', $upscale['dependencies'], $upscale['version'], true );
+	// $upscale = include __DIR__ . '/build/upscale.asset.php';
+	// wp_enqueue_script( 'upscale-js', plugin_dir_url( __FILE__ ) . '/build/upscale.js', $upscale['dependencies'], $upscale['version'], true );
+
+	$my_assistant = include __DIR__ . '/build/my-assistant.asset.php';
+	wp_enqueue_script( 'my-assistant-js', plugin_dir_url( __FILE__ ) . '/build/my-assistant.js', $my_assistant['dependencies'], $my_assistant['version'], true );
 
 	wp_localize_script(
 		'ai-insert-editor-script',
@@ -29,6 +32,8 @@ function enqueue_admin_script() : void {
 			'nonce' => wp_create_nonce( 'wp_rest' ),
 		]
 	);
+
+	wp_enqueue_style( 'ai-tailwind', plugin_dir_url( __FILE__ ) . '/build/tailwind.css' );
 }
 
 function add_plugin_menu() : void {
@@ -40,6 +45,29 @@ function add_plugin_menu() : void {
 		'ai-plugin-settings',
 		__NAMESPACE__ . '\\render_plugin_settings_page'
 	);
+
+	add_submenu_page(
+		'index.php',
+		'My Assistant',
+		'My Assistant',
+		'manage_options',
+		'ai-assistant',
+		__NAMESPACE__ . '\\render_ai_assistant_page'
+	);
+}
+
+function render_ai_assistant_page() : void {
+	?>
+	<div id="my-assistant-wrapper" class="tailwind" style="height: calc(100vh - 32px); display: flex; margin-left: -20px; background: white;"></div>
+	<style>
+		#wpfooter {
+			display: none;
+		}
+		#wpbody-content {
+			padding-bottom: 0;;
+		}
+	</style>
+	<?php
 }
 
 function render_plugin_settings_page() : void {

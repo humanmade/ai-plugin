@@ -8,6 +8,9 @@ use AI\Azure_Vision;
 use AI\AWS_Rekognition;
 use AI\OpenAI\Function_;
 use AI\OpenAI\Function_Call;
+use AI\OpenAI\Thread;
+use AI\OpenAI\Thread_Message;
+use AI\OpenAI\Thread_New_Message;
 use Exception;
 use Iterator;
 use Traversable;
@@ -149,6 +152,42 @@ function register_rest_routes() : void {
 					'default' => false,
 				],
 			],
+		]
+	] );
+
+	register_rest_route( 'ai/v1', 'my-assistant', [
+		[
+			'methods' => 'POST',
+			'callback' => my_assistant_post_callback(...),
+			'args' => [
+				'content' => [
+					'type' => 'string',
+				],
+				'stream' => [
+					'type' => 'boolean',
+					'default' => false,
+				],
+			],
+		]
+	] );
+
+	register_rest_route( 'ai/v1', 'my-assistant', [
+		[
+			'methods' => 'GET',
+			'callback' => my_assistant_get_callback(...),
+			'args' => [
+				'stream' => [
+					'type' => 'boolean',
+					'default' => false,
+				],
+			],
+		]
+	] );
+
+	register_rest_route( 'ai/v1', 'files/(?P<id>[^/]+)', [
+		[
+			'methods' => 'GET',
+			'callback' => get_file_callback(...),
 		]
 	] );
 }
@@ -555,4 +594,109 @@ function stream_response( Traversable $stream ) : void {
 		wp_ob_end_flush_all();
 		$id++;
 	}
+}
+
+function start_stream() {
+	ini_set( 'output_buffering', 'off' ); // @codingStandardsIgnoreLine
+	ini_set( 'zlib.output_compression', false ); // @codingStandardsIgnoreLine
+	header( 'X-Accel-Buffering: no' );
+}
+
+/**
+ *
+ * @param Thread_Message[] $stream
+ * @return void
+ */
+function stream_thread_messages( $stream, OpenAI\Client $client ) : void {
+	foreach ( $stream as $message ) {
+		foreach ( $message->content as &$value ) {
+			if ( $value->type === 'image_file' ) {
+				$value->image_file->content = $client->get_file_contents( $value->image_file->file_id );
+			}
+		}
+		printf( "id: %s\n", $message->id ); // phpcs:ignore
+		echo "event: message\n"; // phpcs:ignore
+		echo 'data: ' . wp_json_encode( $message ) . "\n\n";
+		flush();
+		wp_ob_end_flush_all();
+	}
+}
+
+/**
+ *
+ * @param Thread_Run_Step[] $stream
+ * @return void
+ */
+function stream_thread_run_steps( $stream, OpenAI\Client $client ) : void {
+	foreach ( $stream as $step ) {
+		printf( "id: %s\n", $step->id ); // phpcs:ignore
+		echo "event: step\n"; // phpcs:ignore
+		echo 'data: ' . wp_json_encode( $step ) . "\n\n";
+		flush();
+		wp_ob_end_flush_all();
+		// Check for message completed steps and get the message.
+		if ( $step->step_details->type === 'message_creation' && $step->status === 'completed' ) {
+			$message = $client->get_thread_message( $step->thread_id, $step->step_details->message_creation->message_id );
+			stream_thread_messages( [ $message ], $client );
+		}
+	}
+}
+
+function my_assistant_get_callback( WP_REST_Request $request ) {
+	$openai = $openai = OpenAI\HTTP_Client::get_instance();
+
+	$thread_id = get_user_meta( 1, 'ai_my_assistant_thread_id', true );
+	if ( ! $thread_id ) {
+		$thread = $openai->create_thread([]);
+		update_user_meta( 1, 'ai_my_assistant_thread_id', $thread->id );
+	}
+
+	$thread = new Thread( id: $thread_id );
+	$messages = array_reverse( $openai->get_thread_messages( $thread_id, 20, 'desc' ) );
+
+	// If the thread is currently running, resume it.
+	if ( $request['stream'] ) {
+		start_stream();
+		stream_thread_messages( $messages, $openai );
+		$resumed_steps_iterator = $thread->resume( $openai );
+		if ( $resumed_steps_iterator ) {
+			stream_thread_run_steps( $resumed_steps_iterator, $openai );
+		}
+		exit;
+	} else {
+		return $messages;
+	}
+}
+
+function my_assistant_post_callback( WP_REST_Request $request ) {
+	$openai = $openai = OpenAI\HTTP_Client::get_instance();
+	$thread_id = get_user_meta( 1, 'ai_my_assistant_thread_id', true );
+
+	$thread = new Thread( id: $thread_id );
+	$message = $openai->create_thread_message( new Thread_New_Message(
+		role: 'user',
+		thread_id: $thread->id,
+		content: $request['content'],
+	) );
+
+	if ( $request['stream'] ) {
+		start_stream();
+		stream_thread_messages( [ $message ], $openai );
+		stream_thread_run_steps( $thread->run( $openai ), $openai );
+		exit;
+	} else {
+		$messages = [ $message ];
+		foreach ( $thread->run( $openai ) as $message ) {
+			$messages[] = $message;
+		}
+		return $messages;
+	}
+}
+
+function get_file_callback( WP_REST_Request $request ) {
+	$openai = $openai = OpenAI\HTTP_Client::get_instance();
+	$response = $openai->get_file_contents( $request['id'] );
+	header( 'Content-Type: image/png' );
+	echo wp_remote_retrieve_body( $response );
+	exit;
 }

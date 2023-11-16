@@ -122,12 +122,17 @@ export async function *streamResponse(response: Response) {
 		const lines = buffer.split( '\n' );
 		buffer = lines.pop() || '';
 
+		let type = "message"
 		for ( let index = 0; index < lines.length; index++ ) {
 			const line = lines[ index ];
+			if ( line.startsWith( 'event:' ) ) {
+				type = line.slice( 6 ).trim();
+			}
 			if ( line.startsWith( 'data:' ) ) {
 				// Extract the JSON data from the line.
 				const data = JSON.parse( line.slice( 5 ) );
-				yield data.content;
+				data._message_type = type;
+				yield data;
 			} else if ( line === '' && index === lines.length - 1 ) {
 				// If the last line is empty, reset the chunk.
 			}
