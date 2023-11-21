@@ -5,8 +5,6 @@ namespace AI\Semantic_Search;
 use AI\OpenAI;
 use WP_CLI;
 
-use function cli\prompt;
-
 class CLI_Command {
 	/**
 	 * Get embeddings for a given post. Will display the post text and the embeddings.

@@ -3,8 +3,6 @@
 namespace AI\Azure_Vision;
 
 use Exception;
-use IteratorAggregate;
-use OpenAI;
 
 class HTTP_Client {
 	protected static $instance;

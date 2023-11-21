@@ -5,7 +5,6 @@ namespace AI\Dashboard_Assistant;
 use AI\OpenAI;
 use AI\OpenAI\Assistant;
 use AI\OpenAI\Function_Call;
-use AI\OpenAI\Client;
 use AI\OpenAI\Thread;
 use AI\OpenAI\Thread_New_Message;
 use AI\OpenAI\Thread_Message;

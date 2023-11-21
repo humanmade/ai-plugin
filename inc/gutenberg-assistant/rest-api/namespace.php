@@ -5,10 +5,6 @@ namespace AI\Gutenberg_Assistant\REST_API;
 use AI;
 use AI\OpenAI\Message;
 use AI\OpenAI;
-use AI\Azure_Vision;
-use AI\AWS_Rekognition;
-use AI\OpenAI\Function_;
-use AI\OpenAI\Function_Call;
 use Exception;
 use WP_Error;
 use WP_REST_Response;
@@ -102,13 +98,39 @@ function register_rest_routes() : void {
 function insert_callback( WP_REST_Request $request ) : WP_REST_Response|WP_Error {
 
 	$openai = OpenAI\Client::get_instance();
+	/**
+	 * @var Message[] $messages
+	 */
 	$messages = [];
 
-	$system_prompt = 'You are an assistant that writes WordPress gutenberg code and says nothing else. You only reply in Gutenberg HTML format including HTML comments for WordPress blocks. All responses must be valid Gutenberg HTML code. Any formatting should always use HTML when I ask you to link things, make them bold, etc. Don\'t make any remarks about what you\'re doing, just give me the Gutenberg code.';
-
-	if ( $request['content'] ) {
-		$system_prompt .= ' You are writing a page that has the content: ' . $request['content'];
+	if ( isset( $request['post']['content'] ) ) {
+		$content_preamble = 'We are writing a post with the content that is below. The "{{selected_block_placeholder}}" text in the content signifies where the user is currently editing / where the caret position is. \n\n' . $request['post']['content'] . "\n\n";
+	} else {
+		$content_preamble = '';
 	}
+
+	$post_type = $request['post']['type'] ?? 'post';
+	$site_name = get_bloginfo( 'name' );
+
+	if ( isset( $request['post']['title'] ) ) {
+		$title_preamble = 'with the title "' . $request['post']['title'] . '"';
+	} else {
+		$title_preamble = '';
+	}
+
+	$system_prompt = <<<EOF
+	$content_preamble You are an assistant that writes WordPress gutenberg code and says nothing else.
+	You only reply in Gutenberg HTML format including HTML comments for WordPress blocks.
+	All responses must be valid Gutenberg HTML code. Any formatting should always use HTML
+	when I ask you to link things, make them bold, etc. Don't make any remarks about what
+	you're doing, just give me the Gutenberg code.
+
+	If you ever generate image blocks, use unsplash image URLs for placeholders and images.
+
+	You are writing a $post_type on the website "$site_name" $title_preamble.
+
+	Remember to output in Gutenberg HTML format including HTML comments for WordPress blocks. Nothing extra.
+	EOF;
 
 	$messages[] = new Message(
 		role: 'system',
@@ -147,7 +169,6 @@ function insert_callback( WP_REST_Request $request ) : WP_REST_Response|WP_Error
 
 	return rest_ensure_response( $response->choices[0]->message );
 }
-
 
 /**
  * Run a Chat AI call.
