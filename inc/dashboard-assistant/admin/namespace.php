@@ -10,7 +10,7 @@ function bootstrap() : void {
 function enqueue_admin_script() : void {
 	$my_assistant = require __DIR__ . '/build/index.tsx.asset.php';
 	wp_enqueue_script( 'my-assistant-js', plugin_dir_url( __FILE__ ) . '/build/index.tsx.js', $my_assistant['dependencies'], $my_assistant['version'], true );
-	wp_enqueue_style( 'ai-tailwind', plugin_dir_url( __FILE__ ) . '/build/tailwind.css' );
+	wp_enqueue_style( 'ai-dashboard-assistant-tailwind', plugin_dir_url( __FILE__ ) . '/build/tailwind.css' );
 	wp_localize_script( 'my-assistant-js', 'dashboardAssistant', [
 		'api' => [
 			'root' => rest_url(),
