@@ -1,6 +1,6 @@
 # WordPress AI
 
-This is an AI integration layer for WordPress, to make building AI powered solutions easier, faster and collaborative. This layer is relatively unopinionated, leaving decisions of UI and workflows to the solutions build on it. It does however provider several user-facing features and capabilities as a demonstration of integration possibilitiy.
+This is an AI integration layer for WordPress, to make building AI powered solutions easier, faster and collaborative. This layer is relatively unopinionated, leaving decisions of UI and workflows to the solutions build on it. It does however provider several user-facing features and capabilities as a demonstration of possibilities.
 
 ## Motivation
 
