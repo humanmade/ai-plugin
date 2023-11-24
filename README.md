@@ -36,13 +36,13 @@ Post Embeddings can be used with ElasticPress or Elasticsearch directly to provi
 
 ### OpenAI Integration
 
-
+<img src="./.github/openai.svg" width=100>
 
 Deep integration with [OpenAI](https://platform.openai.com/) for Chat, Assistants, Dall-e 3 and more.
 
 ### Segmind Integration
 
-<img src="./.github/segmind.webp" width=100>
+<img src="./.github/segmind.webp" width=120>
 
 Access [Segmind](https://www.segmind.com/) APIs easily, with an API connector and authentication.
 
