@@ -10,7 +10,7 @@ It's out belief that AI will revolutionize the way software is built, and the wa
 
 ### AI Block Editor / Gutenberg Writing Assistant
 
-![](./github/dashboard-assistant.gif)
+![](./.github/dashboard-assistant.gif)
 
 The Writing Assistant gives users the ability to generate content while writing using the Gutenberg editor. The assistant can write Gutenberg blocks, modify existing content via summarizing, changing tone, translating etc.
 
@@ -20,13 +20,13 @@ _The Gutenberg Assistant was written before the OpenAI Assitants API existed, an
 
 ### WordPress Dashboard Assistant
 
-![](./github/gutenberg-assistant.gif)
+![](./.github/gutenberg-assistant.gif)
 
 The Dashboard Assistant provides an assistant chat interface to your WordPress site, that can be extended by developers and plugins to add capbilities, data sources and actions. People can interact with the assistant to write content, get insights from their content or perform actions.
 
 ### AI Image Editor
 
-![](./github/image-editor.gif)
+![](./.github/image-editor.gif)
 
 ## Frameworks and Libraries
 
