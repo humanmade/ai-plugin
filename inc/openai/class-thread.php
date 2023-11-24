@@ -49,7 +49,6 @@ class Thread {
 		while ( true ) {
 			$run = $client->get_thread_run( $this->id, $run->id );
 			$steps = $client->list_thread_run_steps( $this->id, $run->id, 20, 'asc', $last_run_step );
-			print_r( $steps );
 			$is_completed = true;
 			foreach ( $steps as $step ) {
 				yield $step;

@@ -51,6 +51,28 @@ class Client {
 		return $response['body'];
 	}
 
+	public function sdxl_inpainting(
+		string $image_data,
+		string $mask_data,
+		string $prompt,
+		int $samples = 1
+		) : array {
+		$data = [
+			"prompt" => $prompt,
+			"negative_prompt" => 0,
+			"samples" => 4,
+			"scheduler" => 'Euler a',
+			"num_inference_steps" => 20,
+			"guidance_scale" => 25,
+			"strength" => 0.9,
+			"base64" => true,
+			'image' => base64_encode( $image_data ),
+			'mask' => base64_encode( $mask_data ),
+		];
+		$response = $this->request( '/v1/sdxl-inpaint', 'POST', $data );
+		return json_decode( $response['body'], true );
+	}
+
 	/**
 	 * Background Removal
 	 *

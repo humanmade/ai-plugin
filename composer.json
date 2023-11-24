@@ -10,7 +10,8 @@
     "require": {
         "openai-php/client": "~0.4",
         "aws/aws-sdk-php": "~3.278",
-        "phpdocumentor/reflection-docblock": "^5.3"
+        "phpdocumentor/reflection-docblock": "^5.3",
+        "guzzlehttp/guzzle": "^7.0"
     },
     "config": {
         "allow-plugins": {

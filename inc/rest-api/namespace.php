@@ -393,7 +393,6 @@ function send_messages( OpenAI\Client $openai, array $messages ) : array {
 		$messages[] = $message;
 		$messages = send_messages( $openai, $messages );
 	}
-	error_log(print_r($messages, true));
 	return $messages;
 }
 
