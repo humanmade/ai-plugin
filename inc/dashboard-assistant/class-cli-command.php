@@ -21,6 +21,7 @@ class CLI_Command {
 	 *
 	 */
 	public function my_assistant( $args, $args_assoc ) {
+		$assistant_id = get_option( 'ai_my_assistant_id' );
 		$openai = $openai = OpenAI\Client::get_instance();
 		wp_set_current_user( 1 );
 
@@ -54,7 +55,7 @@ class CLI_Command {
 				) );
 			$this->display_thread_message( $message );
 
-			foreach ( $thread->run( $openai ) as $step ) {
+			foreach ( $thread->run( $assistant_id, $openai ) as $step ) {
 				$this->display_thread_run_step( $step, $openai );
 			}
 		}

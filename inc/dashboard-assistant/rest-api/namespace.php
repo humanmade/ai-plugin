@@ -524,6 +524,7 @@ function my_assistant_get_callback( WP_REST_Request $request ) {
 
 function my_assistant_post_callback( WP_REST_Request $request ) {
 	$openai = $openai = OpenAI\Client::get_instance();
+	$assistant_id = get_option( 'ai_my_assistant_id' );
 	$thread_id = get_user_meta( 1, 'ai_my_assistant_thread_id', true );
 
 	$thread = new Thread( id: $thread_id );
@@ -536,11 +537,11 @@ function my_assistant_post_callback( WP_REST_Request $request ) {
 	if ( $request['stream'] ) {
 		start_stream();
 		stream_thread_messages( [ $message ], $openai );
-		stream_thread_run_steps( $thread->run( $openai ), $openai );
+		stream_thread_run_steps( $thread->run( $assistant_id, $openai ), $openai );
 		exit;
 	} else {
 		$messages = [ $message ];
-		foreach ( $thread->run( $openai ) as $message ) {
+		foreach ( $thread->run( $assistant_id, $openai ) as $message ) {
 			$messages[] = $message;
 		}
 		return $messages;

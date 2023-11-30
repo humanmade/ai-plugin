@@ -1,3 +1,6 @@
 # Dashboard Assistant
 
-![](https://joehoyle-captured.s3-eu-west-1.amazonaws.com/Screen-Shot-2023-11-16-16-42-05.84-FncbEFlGuJO3iAQb5jRh0gttjTo69olXwyAnJPR7Bajq3BDc4xi1RLXULoif5mdhp3K6Eo6AYaijS0r3fEWYRJkksNO1VKoZLFVI.png)
+![](../../.github/dashboard-assistant.gif)
+
+The Dashboard Assistant provides an assistant chat interface to your WordPress site, that can be extended by developers and plugins to add capbilities, data sources and actions. People can interact with the assistant to write content, get insights from their content or perform actions.
+

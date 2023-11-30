@@ -3,6 +3,7 @@
 namespace AI\OpenAI;
 
 use Exception;
+use Generator;
 
 class Thread {
 	public function __construct(
@@ -29,7 +30,13 @@ class Thread {
 		return $this->run_steps( $runs[0], $client );
 	}
 
-	public function run( Client $client ) {
+	/**
+	 * Run the thread with a given assistant id.
+	 *
+	 * @param Client $client
+	 * @return Generator The generator which should be iterated over. Yields Thread_Run_Step.
+	 */
+	public function run( string $assistant_id, Client $client ) : Generator {
 		$assistant = Assistant::get_by_id( 'asst_ooFc8fQcvIwuF29VXW3xpgzu' );
 		$run = $client->run_thread( $this->id, $assistant->id, null, null, $assistant->get_registered_tools() );
 		return $this->run_steps( $run, $client );
@@ -40,9 +47,9 @@ class Thread {
 	 *
 	 * @param Thread_Run $run
 	 * @param Client $client
-	 * @return Thread_Run
+	 * @return Generator
 	 */
-	protected function run_steps( Thread_Run $run, Client $client ) {
+	protected function run_steps( Thread_Run $run, Client $client ) : Generator {
 
 		$last_run_step = null;
 
