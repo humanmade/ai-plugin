@@ -3,19 +3,9 @@
 namespace AI\Admin;
 
 function bootstrap() : void {
-	add_action( 'init', register_blocks( ... ) );
-	add_action( 'admin_enqueue_scripts', enqueue_admin_script( ... ) );
 	add_action( 'admin_menu', add_plugin_menu( ... ) );
 	add_action( 'admin_init', register_settings_fields( ... ) );
 	add_action( 'init', register_settings( ... ) );
-}
-
-function register_blocks() : void {
-	register_block_type( __DIR__ . '/blocks/chart' );
-}
-
-function enqueue_admin_script() : void {
-	// wp_enqueue_script( 'alt-text-js', plugin_dir_url( __FILE__ ) . '/src/alt-text.js', [ 'jquery', 'wp-api-fetch' ], null, true );
 }
 
 function add_plugin_menu() : void {
@@ -235,6 +225,34 @@ function register_settings_fields() : void {
 			?>
 			<input type="text" name="segmind_api_key" value="<?php echo esc_attr( $value ); ?>" />
 			<p class="description">E.g. <code>SG_1234567890qwerty</code>.</p>
+			<?php
+		},
+		'ai-plugin',
+		'segmind',
+	);
+
+	add_settings_field(
+		'clipdrop_api_key',
+		'Clipdrop API Key',
+		function () {
+			$value = get_option( 'clipdrop_api_key' );
+			?>
+			<input type="text" name="clipdrop_api_key" value="<?php echo esc_attr( $value ); ?>" />
+			<p class="description">E.g. <code>p9898jcp98cjp38jdp38jdp8o3jdpo3jdp8jw3pd98j3wpf8j3sp9f8jpdw3upf893wf</code>.</p>
+			<?php
+		},
+		'ai-plugin',
+		'segmind',
+	);
+
+	add_settings_field(
+		'dreamstudio_api_key',
+		'DreamStudio API Key',
+		function () {
+			$value = get_option( 'dreamstudio_api_key' );
+			?>
+			<input type="text" name="dreamstudio_api_key" value="<?php echo esc_attr( $value ); ?>" />
+			<p class="description">E.g. <code>sk-1234567898765432123456789</code>.</p>
 			<?php
 		},
 		'ai-plugin',

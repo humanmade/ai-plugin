@@ -35,7 +35,7 @@ class Client {
 			],
 			[
 				'name'     => 'init_image',
-            	'contents' => $image_data,
+				'contents' => $image_data,
 			],
 			[
 				'name' => 'mask_source',
@@ -43,7 +43,7 @@ class Client {
 			],
 			[
 				'name'     => 'mask_image',
-            	'contents' => $mask_data,
+				'contents' => $mask_data,
 			],
 
 		] );
