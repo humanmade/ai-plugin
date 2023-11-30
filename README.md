@@ -1,5 +1,8 @@
 # WordPress AI
 
+> [!NOTE]
+> This project is evolving quickly, and should be considered a proof-of-concept to take, modofy and learn from. We are not currently providing the plugin as an end-user solution. The plugin has functional bugs, missing pieces etc.
+
 This is an AI integration layer for WordPress, to make building AI powered solutions easier, faster and collaborative. This layer is relatively unopinionated, leaving decisions of UI and workflows to the solutions build on it. It does however provider several user-facing features and capabilities as a demonstration of possibilities.
 
 ## Motivation
