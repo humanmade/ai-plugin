@@ -1,0 +1,21 @@
+{
+	"name": "ai",
+	"version": "1.0.0",
+	"main": "index.js",
+	"license": "MIT",
+	"dependencies": {
+		"@pmmmwh/react-refresh-webpack-plugin": "^0.5.11",
+		"@types/wordpress__api-fetch": "^3.2.4",
+		"@types/wordpress__components": "^14.0.10",
+		"@types/wordpress__data": "^4.6.11",
+		"@types/wordpress__html-entities": "^2.7.0",
+		"@types/wordpress__url": "^2.14.0",
+		"@wordpress/scripts": "^26.16.0",
+		"react-image-crop": "^10.1.8",
+		"react-zoom-pan-pinch": "^3.3.0"
+	},
+	"scripts": {
+		"start": "wp-scripts start --webpack-copy-php --hot=true --https --allowed-hosts=all src/index.tsx",
+		"build": "wp-scripts build src/index.tsx"
+	}
+}

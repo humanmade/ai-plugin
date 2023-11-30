@@ -1,0 +1,133 @@
+#image-editor-modal {
+	display: flex;
+	position: fixed;
+	flex-direction: column;
+	height: 100vh;
+	background-color: rgba(0, 0, 0, 0.5);
+	z-index: 160001; /* 1 more than the media modal */
+	inset: 0;
+}
+#image-editor-modal header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 10px 0 10px;
+}
+#image-editor-modal header h3 {
+	margin: 0;
+}
+
+#image-editor-modal header .actions {
+	display: flex;
+	flex-direction: row;
+	gap: 10px;
+}
+#image-editor-modal header .actions .close {
+	border: none;
+	background-color: transparent;
+	font-size: 24px;
+	margin-right: 10px;
+	color: #888;
+}
+
+.editor {
+	margin: 30px;
+	display: flex;
+	height: calc(100vh - 40px);
+	flex-direction: column;
+	background-color: white;
+}
+
+.editor-actions {
+	display: flex;
+	flex-direction: row;
+	background-color: white;
+	padding: 10px;
+}
+
+.editor-actions-group {
+	margin-right: 10px;
+	border-right: 1px solid #2271b142;
+}
+
+.editor-actions button {
+	margin: 0 5px;
+	border: none;
+	background: none;
+	color: #2271b1a8;
+	border-radius: 2px;
+	padding: 3px;
+}
+
+.editor-actions button.active {
+	background-color: #2271b1a8;
+	color: white;
+}
+
+.editor-actions button:disabled {
+	color: #2271b142;
+}
+
+.canvas-wrapper {
+	flex: 1;
+	overflow: hidden;
+}
+
+.canvas {
+	/* transform: scale(0.5, 0.5); */
+	background-image: linear-gradient(45deg, #808080 25%, transparent 25%), linear-gradient(-45deg, #808080 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #808080 75%), linear-gradient(-45deg, transparent 75%, #808080 75%);
+	background-size: 20px 20px;
+	background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+	box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+	border-radius: 3px;
+}
+
+.canvas canvas {
+	display: block;
+	border-radius: 3px;
+}
+
+.editor .Mask {
+	position: absolute;
+}
+
+.inpaint-options {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	margin-left: auto;
+}
+
+.inpaint-options input[type="text"] {
+	min-width: 500px;
+}
+
+.react-transform-wrapper  {
+	width: 100% !important;
+	height: calc(100vh - 125px) !important;
+}
+
+.processing {
+	position: absolute;
+	inset: 0;
+	background-color: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+@keyframes spin {
+	to { -webkit-transform: rotate(360deg); }
+}
+
+.processing .spin {
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+	border: 3px solid rgba(255,255,255,.3);
+	border-radius: 50%;
+	border-top-color: #fff;
+	animation: spin 1s linear infinite;
+	z-index: 100;
+}
