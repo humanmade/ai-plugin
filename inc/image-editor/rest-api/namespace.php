@@ -5,6 +5,7 @@ namespace AI\Image_Editor\REST_API;
 use AI\Segmind;
 use AI\Clipdrop;
 use Exception;
+use Imagick;
 use WP_Error;
 use WP_Image_Editor_Imagick;
 use WP_Post;
@@ -141,8 +142,15 @@ function update_attachment_image_blob( string $blob, WP_Post $post ) {
 function inpaint( WP_REST_Request $request ) {
 	try {
 		$client = Segmind\Client::get_instance();
+		// Image must be a JPEG, so convert it.
+		$imagick = new Imagick;
+		$imagick->readImageBlob( base64_decode( $request['image'] ) );
+		$imagick->setFormat( 'jpeg' );
+		$imagick->setImageCompressionQuality( 100 );
+		$image_data = $imagick->getImageBlob();
+
 		$data = $client->sdxl_inpainting(
-			image_data: base64_decode( $request['image'] ),
+			image_data: $image_data,
 			mask_data: base64_decode( $request['mask'] ),
 			prompt: $request['prompt'],
 			samples: $request['samples'],

@@ -75,11 +75,17 @@ export default function Editor( { editor, trigger }: { editor: ImageEditor, trig
 	async function onSubmitInpaint(e: React.FormEvent<HTMLFormElement>) {
 		setProcessing(true);
 		e.preventDefault();
-		let inpaintOptions = await fetchInpaintOptions( editor.getImageData(), invertMask( mask!.mask! ), (e.target as HTMLFormElement).querySelector<HTMLInputElement>('input[type="text"]')!.value );
-		setInpaintOptions( inpaintOptions );
-		editor.setImageData( inpaintOptions[0] );
-		setMask(undefined);
-		setSelectionMode('pan');
+		try {
+			let inpaintOptions = await fetchInpaintOptions( editor.getImageData(), invertMask( mask!.mask! ), (e.target as HTMLFormElement).querySelector<HTMLInputElement>('input[type="text"]')!.value );
+			setInpaintOptions( inpaintOptions );
+			editor.setImageData( inpaintOptions[0] );
+			setMask(undefined);
+			setSelectionMode('pan');
+		} catch (e) {
+			alert( e.message );
+		} finally {
+			setProcessing(false);
+		}
 	}
 
 	async function onSubmitCleanup() {
@@ -88,23 +94,41 @@ export default function Editor( { editor, trigger }: { editor: ImageEditor, trig
 			return;
 		}
 		setProcessing(true);
-		let cleanupOptions = await fetchCleanupOptions( editor.getImageData(), invertMask( mask.mask ) );
-		console.log( cleanupOptions)
-		editor.setImageData( cleanupOptions[0] );
-		setMask(undefined);
-		setSelectionMode('pan');
+
+		try {
+			let cleanupOptions = await fetchCleanupOptions( editor.getImageData(), invertMask( mask.mask ) );
+			editor.setImageData( cleanupOptions[0] );
+			setMask(undefined);
+			setSelectionMode('pan');
+		} catch (e) {
+			alert( e.message );
+		} finally {
+			setProcessing(false);
+		}
 	}
 
 	async function onSubmitRemoveBackground() {
 		setProcessing(true);
-		let newImage = await fetchRemoveBackground( editor.getImageData() );
-		editor.setImageData( newImage );
+		try {
+			let newImage = await fetchRemoveBackground( editor.getImageData() );
+			editor.setImageData( newImage );
+		} catch ( e ) {
+			alert( e.message );
+		} finally {
+			setProcessing(false);
+		}
 	}
 
 	async function onSubmitUpscale() {
 		setProcessing(true);
-		let newImage = await fetchUpscale( editor.getImageData() );
-		editor.setImageData( newImage );
+		try {
+			let newImage = await fetchUpscale( editor.getImageData() );
+			editor.setImageData( newImage );
+		} catch ( e ) {
+			alert( e.message );
+		} finally {
+			setProcessing(false);
+		}
 	}
 
 	async function onSubmitCrop() {
@@ -116,9 +140,14 @@ export default function Editor( { editor, trigger }: { editor: ImageEditor, trig
 	async function onSubmitReplaceBackground(e: React.FormEvent<HTMLFormElement>) {
 		setProcessing(true);
 		e.preventDefault();
-		let newImage = await fetchReplaceBackground( editor.getImageData(), (e.target as HTMLFormElement).querySelector<HTMLInputElement>('input[type="text"]')!.value );
-		editor.setImageData( newImage );
-
+		try {
+			let newImage = await fetchReplaceBackground( editor.getImageData(), (e.target as HTMLFormElement).querySelector<HTMLInputElement>('input[type="text"]')!.value );
+			editor.setImageData( newImage );
+		} catch ( e ) {
+			alert( e.message );
+		} finally {
+			setProcessing(false);
+		}
 	}
 
 	return (
@@ -285,6 +314,16 @@ function invertMask(imageData: ImageData) : ImageData {
 	return newImageData;
 }
 
+interface ErrorResponse {
+	message: string,
+	code: string,
+}
+
+interface ImageResponse {
+	image: string,
+}
+
+
 async function fetchInpaintOptions( imageData: ImageData, maskData: ImageData, prompt: string ) : Promise<ImageData[]> {
 	let response = await fetch( '/wp-json/ai/v1/image-editor/inpaint', {
 		method: 'POST',
@@ -299,15 +338,17 @@ async function fetchInpaintOptions( imageData: ImageData, maskData: ImageData, p
 		}),
 	});
 
-	let json: { image: string[] } = await response.json();
-	let base64String = json.image[0];
+	let json: ErrorResponse | ImageResponse = await response.json();
 
-	const newImageData = new ImageData(imageData.width, imageData.height);
+	if ( 'message' in json ) {
+		throw new Error( json.message );
+	}
+	let base64String = json.image[0];
 
 	const editor = new ImageEditor()
 	await editor.load('data:image/png;base64,' + base64String);
-	newImageData.data.set(editor.getImageData().data);
-	return [newImageData];
+
+	return [editor.getImageData()];
 }
 
 async function fetchCleanupOptions( imageData: ImageData, maskData: ImageData ) : Promise<ImageData[]> {
@@ -318,17 +359,21 @@ async function fetchCleanupOptions( imageData: ImageData, maskData: ImageData ) 
 		},
 		body: JSON.stringify({
 			image: convertImageData(imageData),
-			mask: convertImageData(maskData, 'image/png'),
+			mask: convertImageData(maskData),
 		}),
 	});
 
-	let json: { image: string } = await response.json();
+	let json: ErrorResponse | ImageResponse = await response.json();
+
+	if ( 'message' in json ) {
+		throw new Error( json.message );
+	}
 	let base64String = json.image;
 
 	const newImageData = new ImageData(imageData.width, imageData.height);
 
 	const editor = new ImageEditor();
-	console.log( base64String)
+
 	await editor.load('data:image/png;base64,' + base64String);
 	newImageData.data.set(editor.getImageData().data);
 	return [newImageData];
@@ -345,7 +390,11 @@ async function fetchRemoveBackground( imageData: ImageData ) : Promise<ImageData
 		}),
 	});
 
-	let json: { image: string } = await response.json();
+	let json: ErrorResponse | ImageResponse = await response.json();
+
+	if ( 'message' in json ) {
+		throw new Error( json.message );
+	}
 	let base64String = json.image;
 
 	const newImageData = new ImageData(imageData.width, imageData.height);
@@ -367,7 +416,11 @@ async function fetchUpscale( imageData: ImageData ) : Promise<ImageData> {
 		}),
 	});
 
-	let json: { image: string } = await response.json();
+	let json: ErrorResponse | ImageResponse = await response.json();
+
+	if ( 'message' in json ) {
+		throw new Error( json.message );
+	}
 	let base64String = json.image;
 
 	const newImageData = new ImageData(imageData.width * 2, imageData.height * 2);
@@ -377,6 +430,7 @@ async function fetchUpscale( imageData: ImageData ) : Promise<ImageData> {
 	newImageData.data.set(editor.getImageData().data);
 	return newImageData;
 }
+
 
 async function fetchReplaceBackground( imageData: ImageData, prompt: string ) : Promise<ImageData> {
 	let response = await fetch( '/wp-json/ai/v1/image-editor/replace-background', {
@@ -390,7 +444,12 @@ async function fetchReplaceBackground( imageData: ImageData, prompt: string ) : 
 		}),
 	});
 
-	let json: { image: string } = await response.json();
+	let json: ErrorResponse | ImageResponse = await response.json();
+
+	if ( 'message' in json ) {
+		throw new Error( json.message );
+	}
+
 	let base64String = json.image;
 
 	const newImageData = new ImageData(imageData.width, imageData.height);
