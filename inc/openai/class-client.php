@@ -209,7 +209,7 @@ class Client {
 		return $response;
 	}
 
-	public function create_assisstant(
+	public function create_assistant(
 		string $model,
 		string $name = null,
 		string $description = null,
@@ -229,7 +229,7 @@ class Client {
 		return Assistant::from_data( json_decode( wp_remote_retrieve_body( $response ) ) );
 	}
 
-	public function update_assisstant(
+	public function update_assistant(
 		string $id,
 		string $model,
 		string $name = null,

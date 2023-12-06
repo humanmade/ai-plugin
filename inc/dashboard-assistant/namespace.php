@@ -18,20 +18,35 @@ function bootstrap() : void {
 	}
 
 	$assistant_id = get_option( 'ai_my_assistant_id' );
-	if ( $assistant_id ) {
+
+	if ( ! $assistant_id ) {
+		$assistant = create_assisant();
+	} else {
 		$assistant = OpenAI\Client::get_instance()->get_assistant( get_option( 'ai_my_assistant_id' ) );
-
-		$assistant->register_function( OpenAI\Function_::from_callable( get_posts( ... ) ) );
-		$assistant->register_function( OpenAI\Function_::from_callable( get_current_user( ... ) ) );
-		$assistant->register_function( OpenAI\Function_::from_callable( update_user( ... ) ) );
-		$assistant->register_function( OpenAI\Function_::from_callable( create_post( ... ) ) );
-		$assistant->register_function( OpenAI\Function_::from_callable( create_attachment( ... ) ) );
-		$assistant->register_function( OpenAI\Function_::from_callable( update_post( ... ) ) );
-		$assistant->register_function( OpenAI\Function_::from_callable( generate_images( ... ) ) );
-		$assistant->register_function( OpenAI\Function_::from_callable( get_weather( ... ) ) );
-
-		OpenAI\Assistant::register( $assistant );
 	}
+
+	$assistant->register_function( OpenAI\Function_::from_callable( get_posts( ... ) ) );
+	$assistant->register_function( OpenAI\Function_::from_callable( get_current_user( ... ) ) );
+	$assistant->register_function( OpenAI\Function_::from_callable( update_user( ... ) ) );
+	$assistant->register_function( OpenAI\Function_::from_callable( create_post( ... ) ) );
+	$assistant->register_function( OpenAI\Function_::from_callable( create_attachment( ... ) ) );
+	$assistant->register_function( OpenAI\Function_::from_callable( update_post( ... ) ) );
+	$assistant->register_function( OpenAI\Function_::from_callable( generate_images( ... ) ) );
+	$assistant->register_function( OpenAI\Function_::from_callable( get_weather( ... ) ) );
+
+	OpenAI\Assistant::register( $assistant );
+}
+
+function create_assisant() : OpenAI\Assistant {
+	$assistant = OpenAI\Client::get_instance()->create_assistant(
+		model: 'gpt-4-1106-preview',
+		name: 'WordPress Assistant',
+		instructions: 'You are an assistant for the WordPress CMS admin interface. Users interactive with you to discuss content, publishing actions and site updates. You should perform actions asked by the user and respond to requests for information by using the available functions to get content. You should use code_interpreter to run functions and code that are not provided by user functions.',
+	);
+
+	update_option( 'ai_my_assistant_id', $assistant->id );
+
+	return $assistant;
 }
 
 /**
