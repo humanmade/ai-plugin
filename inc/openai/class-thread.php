@@ -37,7 +37,7 @@ class Thread {
 	 * @return Generator The generator which should be iterated over. Yields Thread_Run_Step.
 	 */
 	public function run( string $assistant_id, Client $client ) : Generator {
-		$assistant = Assistant::get_by_id( 'asst_ooFc8fQcvIwuF29VXW3xpgzu' );
+		$assistant = Assistant::get_by_id( $assistant_id );
 		$run = $client->run_thread( $this->id, $assistant->id, null, null, $assistant->get_registered_tools() );
 		return $this->run_steps( $run, $client );
 	}
