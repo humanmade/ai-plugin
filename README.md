@@ -28,11 +28,13 @@ The Writing Assistant gives users the ability to generate content while writing 
 
 The writing assistant also includes a chat sidebar which can be used to interact with the assistant for guidance, copy editing, idea generation and more.
 
-_The Gutenberg Assistant was written before the OpenAI Assitants API existed, and is build on the Chat API. This allows for content / block streaming (which isn't supported by the Assistant API.)_
+_The Writing Assistant was written before the OpenAI Assitants API existed, and is build on the Chat API. This allows for content / block streaming (which isn't supported by the Assistant API.)_
 
 ### AI Image Editor
 
 ![](./.github/image-editor.gif)
+
+The Image Editor provides experimental image editing capabilities powered by AI. Super-resolution upscaling, inpainting, background removal and replacement, and outpainting are all ectively being worked on. This uses a host of services from Dall.e 3, Stable Diffusion and more.
 
 ## Frameworks and Libraries
 
