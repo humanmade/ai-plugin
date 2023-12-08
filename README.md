@@ -20,7 +20,7 @@ The Dashboard Assistant provides a chat interface to your WordPress site, that c
 
 See [Dashboard Assistant detailed documentation](./inc/dashboard-assistant/README.md), and the underlaying [Assistants API](./inc/openai/docs/assistants.md).
 
-### WordPress Dashboard Assistant
+### Writing Assistant
 
 ![](./.github/gutenberg-assistant.gif)
 
