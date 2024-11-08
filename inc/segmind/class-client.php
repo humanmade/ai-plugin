@@ -121,7 +121,8 @@ class Client {
 		if ( wp_remote_retrieve_response_code( $response ) > 299 ) {
 			error_log( wp_remote_retrieve_body( $response ) );
 			$data = json_decode( wp_remote_retrieve_body( $response ) );
-			throw new Exception( sprintf( "Error from Segmind API, code %d",  wp_remote_retrieve_response_code( $response ) ) );
+			error_log( print_r( $data, true ) );
+			throw new Exception( sprintf( "Error from Segmind API, code %d", wp_remote_retrieve_response_code( $response ) ) );
 		}
 
 		return $response;

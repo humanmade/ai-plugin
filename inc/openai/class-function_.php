@@ -94,10 +94,19 @@ class Function_ implements JsonSerializable {
 				'bool' => 'boolean',
 			];
 
-			if ( isset( $type_map[ $param_schema['type'] ] ) ) {
+			if ( strpos( $param_schema['type'],'[]' ) !== false ) {
+				$base_type = str_replace( '[]', '', $param_schema['type'] );
+				if ( ! isset( $type_map[$base_type] ) ) {
+					throw new Exception( sprintf( 'Param type %s not supported', $param->getName() ) );
+				}
+				$param_schema['type'] = 'array';
+				$param_schema['items'] = [
+					'type' => $type_map[ $base_type ],
+				];
+			} else if ( isset( $type_map[ $param_schema['type'] ] ) ) {
 				$param_schema['type'] = $type_map[ $param_schema['type'] ];
 			} else {
-				throw new Exception( sprintf( 'Param type %s not supported', $param->getName() ) );
+				throw new Exception( sprintf( 'Param type %s for param %s in function %s not supported', $param->getType(), $param->getName(), $name ) );
 			}
 			$parameters[ $param->getName() ] = $param_schema;
 		}

@@ -1,10 +1,12 @@
 <?php
 
 namespace AI\OpenAI;
+use JsonSerializable;
 
 class Assistant {
 
 	protected static array $assistants;
+	private bool $code_interpreter = false;
 
 	public static function get_by_id( string $id ) : static {
 		return static::$assistants[ $id ];
@@ -24,7 +26,6 @@ class Assistant {
 		public ?string $description,
 		public ?string $instructions,
 		public array $tools,
-		public array $file_ids,
 		public array $registered_functions = [],
 	) {}
 
@@ -35,12 +36,15 @@ class Assistant {
 			description: $json->description,
 			instructions: $json->instructions,
 			tools: $json->tools,
-			file_ids: $json->file_ids,
 		);
 	}
 
 	public function register_function( Function_ $function ) {
 		$this->registered_functions[ $function->name ] = $function;
+	}
+
+	public function register_code_interpreter() {
+		$this->code_interpreter = true;
 	}
 
 	public function get_registered_tools() : array {
@@ -49,6 +53,13 @@ class Assistant {
 			$tools[] = new Assistant_Tool(
 				type: 'function',
 				function: $function,
+			);
+		}
+
+		if ( $this->code_interpreter ) {
+			$tools[] = new Assistant_Tool(
+				type: 'code_interpreter',
+				function: null,
 			);
 		}
 		return $tools;
@@ -76,7 +87,6 @@ class Assistant {
 				}
 				$args[ $argument ] = $value;
 			}
-			var_dump( $args );
 			$data = call_user_func_array( $function->callback, $args );
 		}
 
@@ -88,7 +98,7 @@ class Assistant {
 	}
 }
 
-class Assistant_Tool {
+class Assistant_Tool implements JsonSerializable {
 	public function __construct(
 		public string $type,
 		public ?Function_ $function,
@@ -99,5 +109,12 @@ class Assistant_Tool {
 			type: $json->type,
 			function: isset( $json->function ) ? Function_::from_data( $json->function ) : null,
 		);
+	}
+
+	public function jsonSerialize() : array {
+		return array_filter( [
+			'type'=> $this->type,
+			'function'=> $this->function,
+		] );
 	}
 }

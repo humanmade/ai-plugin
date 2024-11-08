@@ -3,8 +3,11 @@
 namespace AI\OpenAI;
 
 use Exception;
+use Generator;
 use IteratorAggregate;
 use OpenAI;
+use Iterator;
+use OpenAI\Responses\Threads\Runs\ThreadRunStreamResponse;
 
 class Client {
 	protected static $instance;
@@ -154,7 +157,7 @@ class Client {
 		return new Chat_Stream( $stream );
 	}
 
-	protected function get_openai_client() : OpenAI\Client {
+	public function get_openai_client() : OpenAI\Client {
 		$base_uri = str_replace( 'https://', '', $this->base_url );
 
 		if ( strpos( $this->base_url, 'azure.com' ) ) {
@@ -177,7 +180,7 @@ class Client {
 			'method' => $method,
 			'headers' => [
 				'Content-Type' => 'application/json',
-				'OpenAI-Beta' => 'assistants=v1',
+				'OpenAI-Beta' => 'assistants=v2',
 			],
 			'timeout' => 60, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout -- Intentionally longer as OpenAI can take a while to respond.
 		];
@@ -337,6 +340,32 @@ class Client {
 		] );
 		$run = Thread_Run::from_data( json_decode( wp_remote_retrieve_body( $response ) ) );
 		return $run;
+	}
+
+	/**
+	 * Returns a list of messages for a given thread.
+	 *
+	 * @param string $thread_id
+	 * @return Generator<ThreadRunStreamResponse>
+	 */
+	public function run_thread_streamed(
+		string $thread_id,
+		string $assistant_id,
+		?string $model = null,
+		?string $instructions = null,
+		?array $tools = null,
+	) : Generator {
+		$client = $this->get_openai_client();
+		$streamed_response = $client->threads()->runs()->createStreamed( $thread_id, [
+			'assistant_id' => $assistant_id,
+			'model' => $model,
+			'instructions' => $instructions,
+			'tools' => $tools,
+		] );
+
+		foreach ( $streamed_response->getIterator() as $step ) {
+			yield $step;
+		}
 	}
 
 		/**

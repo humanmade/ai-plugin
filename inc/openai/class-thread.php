@@ -4,6 +4,14 @@ namespace AI\OpenAI;
 
 use Exception;
 use Generator;
+use Iterator;
+use OpenAI\Responses\Threads\Runs\Steps\Delta\ThreadRunStepDeltaResponse;
+use OpenAI\Responses\Threads\Runs\Steps\Delta\ThreadRunStepResponseToolCallsStepDetails;
+use OpenAI\Responses\Threads\Runs\Steps\Delta\ThreadRunStepResponseFunctionToolCall;
+use OpenAI\Responses\Threads\Runs\Steps\ThreadRunStepResponse;
+use OpenAI\Responses\Threads\Runs\ThreadRunResponseRequiredActionFunctionToolCall;
+use OpenAI\Responses\Threads\Runs\ThreadRunStreamResponse;
+use OpenAI\Responses\Threads\Runs\ThreadRunResponse;
 
 class Thread {
 	public function __construct(
@@ -38,10 +46,44 @@ class Thread {
 	 */
 	public function run( string $assistant_id, Client $client ) : Generator {
 		$assistant = Assistant::get_by_id( $assistant_id );
-		$run = $client->run_thread( $this->id, $assistant->id, null, null, $assistant->get_registered_tools() );
-		return $this->run_steps( $run, $client );
+		$run = $client->run_thread_streamed( $this->id, $assistant_id, 'gpt-4o', null, $assistant->get_registered_tools() );
+		return $this->handle_streamed_response( $run, $assistant_id, $client );
 	}
 
+	public function handle_streamed_response( Iterator $run, string $assistant_id, Client $client  ) : Generator {
+		$assistant = Assistant::get_by_id( $assistant_id );
+		$openai_client = $client->get_openai_client();
+		foreach ( $run as $run_step ) {
+			if ( $run_step->response instanceof ThreadRunResponse && $run_step->response->requiredAction ) {
+				$tool_outputs = [];
+				foreach ( $run_step->response->requiredAction->submitToolOutputs->toolCalls as $tool_call ) {
+					if ( $tool_call instanceof ThreadRunResponseRequiredActionFunctionToolCall ) {
+						$args = json_decode( $tool_call->function->arguments, true );
+
+						$function = new Function_Call(
+							name: $tool_call->function->name,
+							arguments: [ $args ],
+							output: null,
+						);
+
+						$message = $assistant->call_registered_function( $function );
+
+						$tool_outputs[] = [
+							'tool_call_id' => $tool_call->id,
+							'output' => $message->content,
+						];
+					}
+				}
+
+				$run = $openai_client->threads()->runs()->submitToolOutputsStreamed( $this->id, $run_step->response->id, [ 'tool_outputs' => $tool_outputs ] );
+				$iterator = $this->handle_streamed_response( $run->getIterator(), $assistant_id, $client );
+				foreach ( $iterator as $run_step ) {
+					yield $run_step;
+				}
+			}
+			yield $run_step;
+		}
+	}
 	/**
 	 * Get the runs steps as a generator.
 	 *

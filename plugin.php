@@ -43,6 +43,7 @@ require_once __DIR__ . '/inc/semantic-search/class-cli-command.php';
 require_once __DIR__ . '/inc/dashboard-assistant/namespace.php';
 require_once __DIR__ . '/inc/dashboard-assistant/admin/namespace.php';
 require_once __DIR__ . '/inc/dashboard-assistant/rest-api/namespace.php';
+require_once __DIR__ . '/inc/dashboard-assistant/functions/namespace.php';
 
 require_once __DIR__ . '/inc/gutenberg-assistant/namespace.php';
 require_once __DIR__ . '/inc/gutenberg-assistant/admin/namespace.php';

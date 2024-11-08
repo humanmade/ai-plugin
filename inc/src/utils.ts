@@ -107,7 +107,7 @@ export async function chat(
 	return response;
 }
 
-export async function *streamResponse(response: Response) {
+export async function *streamResponse(response: Response) : AsyncGenerator<AssistantStreamEvent> {
 	const reader = response.body!.getReader();
 	let buffer: string = '';
 
@@ -128,11 +128,14 @@ export async function *streamResponse(response: Response) {
 			if ( line.startsWith( 'event:' ) ) {
 				type = line.slice( 6 ).trim();
 			}
-			if ( line.startsWith( 'data:' ) ) {
+			if ( line.startsWith( 'response:' ) ) {
 				// Extract the JSON data from the line.
-				const data = JSON.parse( line.slice( 5 ) );
+				const data = JSON.parse( line.slice( 'response:'.length ) );
 				data._message_type = type;
-				yield data;
+				yield {
+					event: type,
+					data,
+				};
 			} else if ( line === '' && index === lines.length - 1 ) {
 				// If the last line is empty, reset the chunk.
 			}

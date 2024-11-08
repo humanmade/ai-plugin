@@ -40,4 +40,4 @@ export interface Step {
 	_message_type?: 'step',
 }
 
-export type SseEvent = Message | Step;
+export type Event = Message | Step;
