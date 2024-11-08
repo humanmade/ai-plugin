@@ -3,7 +3,6 @@
 > [!NOTE]
 > This project is evolving quickly, and should be considered a proof-of-concept. Use it as a reference to take code, modify, learn and contribute. We are not currently providing the plugin as an end-user solution. The plugin has functional bugs, missing pieces etc.
 
-This is an AI integration layer for WordPress, to make building AI powered solutions easier, faster and collaborative. This layer is relatively unopinionated, leaving decisions of UI and workflows to the solutions build on it. It does however provider several user-facing features and capabilities as a demonstration of possibilities.
 This plugin intends to provide an AI integration layer for WordPress and aims to make building AI powered solutions easier, faster, and more collaborative. This layer is relatively unopinionated, leaving decisions of UI and workflows to the solutions built on top. It does however provider several user-facing features and capabilities as a demonstration of the possibilities.
 
 ## Motivation
@@ -20,7 +19,7 @@ The Dashboard Assistant provides a chat interface to your WordPress site, that c
 
 See [Dashboard Assistant detailed documentation](./inc/dashboard-assistant/README.md), and the underlaying [Assistants API](./inc/openai/docs/assistants.md).
 
-### WordPress Dashboard Assistant
+### Writing Assistant
 
 ![](./.github/gutenberg-assistant.gif)
 
@@ -28,11 +27,13 @@ The Writing Assistant gives users the ability to generate content while writing 
 
 The writing assistant also includes a chat sidebar which can be used to interact with the assistant for guidance, copy editing, idea generation and more.
 
-_The Gutenberg Assistant was written before the OpenAI Assitants API existed, and is build on the Chat API. This allows for content / block streaming (which isn't supported by the Assistant API.)_
+_The Writing Assistant was written before the OpenAI Assitants API existed, and is build on the Chat API. This allows for content / block streaming (which isn't supported by the Assistant API.)_
 
 ### AI Image Editor
 
 ![](./.github/image-editor.gif)
+
+The Image Editor provides experimental image editing capabilities powered by AI. Super-resolution upscaling, inpainting, background removal and replacement, and outpainting are all actively being worked on. This uses a host of services from Dall.e 3, Stable Diffusion and more.
 
 ## Frameworks and Libraries
 

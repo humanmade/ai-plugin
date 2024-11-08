@@ -17,10 +17,14 @@ function bootstrap() : void {
 
 	$assistant_id = get_option( 'ai_my_assistant_id' );
 
-	if ( ! $assistant_id ) {
-		$assistant = create_assisant();
-	} else {
-		$assistant = OpenAI\Client::get_instance()->get_assistant( get_option( 'ai_my_assistant_id' ) );
+	try {
+		if ( ! $assistant_id ) {
+			$assistant = create_assisant();
+		} else {
+			$assistant = OpenAI\Client::get_instance()->get_assistant( get_option( 'ai_my_assistant_id' ) );
+		}
+	} catch ( Exception $e ) {
+		return;
 	}
 
 	do_action( 'dashboard_assistant_init', $assistant );
