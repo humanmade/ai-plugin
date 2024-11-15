@@ -3,6 +3,7 @@
 namespace AI\Dashboard_Assistant;
 
 use AI\OpenAI;
+use Exception;
 use WP_CLI;
 
 function bootstrap() : void {
@@ -24,6 +25,7 @@ function bootstrap() : void {
 			$assistant = OpenAI\Client::get_instance()->get_assistant( get_option( 'ai_my_assistant_id' ) );
 		}
 	} catch ( Exception $e ) {
+		var_dump(	$e );
 		return;
 	}
 
@@ -36,7 +38,7 @@ function bootstrap() : void {
 
 function create_assisant() : OpenAI\Assistant {
 	$assistant = OpenAI\Client::get_instance()->create_assistant(
-		model: 'gpt-4-1106-preview',
+		model: 'gpt-4o',
 		name: 'WordPress Assistant',
 		instructions: 'You are an assistant for the WordPress CMS admin interface. Users interactive with you to discuss content, publishing actions and site updates. You should perform actions asked by the user and respond to requests for information by using the available functions to get content. You should use code_interpreter to run functions and code that are not provided by user functions.',
 	);

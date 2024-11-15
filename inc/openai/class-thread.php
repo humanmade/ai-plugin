@@ -24,6 +24,13 @@ class Thread {
 		);
 	}
 
+
+	/**
+	 * Run the thread with a given assistant id.
+	 *
+	 * @param Client $client
+	 * @return ?Generator<int, Thread_Run_Step, mixed, mixed> The generator which should be iterated over. Yields Thread_Run_Step.
+	 */
 	public function resume( Client $client ) {
 		// Check if there is an active run.
 		$runs = $client->list_thread_runs( $this->id );
@@ -42,7 +49,7 @@ class Thread {
 	 * Run the thread with a given assistant id.
 	 *
 	 * @param Client $client
-	 * @return Generator The generator which should be iterated over. Yields Thread_Run_Step.
+	 * @return Generator<int, ThreadRunStreamResponse, mixed, mixed> The generator which should be iterated over. Yields Thread_Run_Step.
 	 */
 	public function run( string $assistant_id, Client $client ) : Generator {
 		$assistant = Assistant::get_by_id( $assistant_id );
@@ -89,7 +96,7 @@ class Thread {
 	 *
 	 * @param Thread_Run $run
 	 * @param Client $client
-	 * @return Generator
+	 * @return Generator<int, Thread_Run_Step>
 	 */
 	protected function run_steps( Thread_Run $run, Client $client ) : Generator {
 

@@ -21,7 +21,7 @@ function register_functions( Assistant $assistant ) {
 	$assistant->register_function( Function_::from_callable( create_attachment( ... ) ) );
 	$assistant->register_function( Function_::from_callable( update_post( ... ) ) );
 	$assistant->register_function( Function_::from_callable( generate_images( ... ) ) );
-	$assistant->register_function(  Function_::from_callable( get_enabled_plugins( ... ) ) );
+	$assistant->register_function( Function_::from_callable( get_enabled_plugins( ... ) ) );
 }
 
 /**

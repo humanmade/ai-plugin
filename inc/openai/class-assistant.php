@@ -5,7 +5,7 @@ use JsonSerializable;
 
 class Assistant {
 
-	protected static array $assistants;
+	protected static array $assistants = [];
 	private bool $code_interpreter = false;
 
 	public static function get_by_id( string $id ) : static {

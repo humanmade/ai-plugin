@@ -218,7 +218,7 @@ class Client {
 		string $description = null,
 		string $instructions = null,
 		array $tools = [],
-		array $file_ids = [],
+		array $tool_resources = [],
 	) : Assistant {
 		$response = $this->request( '/assistants', 'POST', [
 			'model' => $model,
@@ -226,7 +226,7 @@ class Client {
 			'description' => $description,
 			'instructions' => $instructions,
 			'tools' => $tools,
-			'file_ids' => $file_ids,
+			'tool_resources' => (object) $tool_resources,
 
 		] );
 		return Assistant::from_data( json_decode( wp_remote_retrieve_body( $response ) ) );

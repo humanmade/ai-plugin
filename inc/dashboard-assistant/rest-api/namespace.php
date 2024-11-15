@@ -34,6 +34,8 @@ function register_rest_routes() : void {
 			'args' => [
 				'content' => [
 					'type' => 'string',
+					'required' => true,
+					'validate_callback' => fn ( $value ) => is_string( $value ) && $value !== '',
 				],
 				'stream' => [
 					'type' => 'boolean',
@@ -66,10 +68,25 @@ function start_stream() {
 
 /**
  *
- * @param ThreadRunStreamResponse[] $stream
+ * @param \AI\OpenAI\Thread_Run_Step[] $stream
  * @return void
  */
 function stream_thread_run_steps( Iterator $stream, OpenAI\Client $client ) : void {
+	foreach ( $stream as $step ) {
+		printf( "id: %s\n", $step->id ); // phpcs:ignore
+		echo "event: " . $step->type . "\n"; // phpcs:ignore
+		echo 'response: ' . wp_json_encode( $step ) . "\n\n";
+		flush();
+		wp_ob_end_flush_all();
+	}
+}
+
+/**
+ *
+ * @param ThreadRunStreamResponse[] $stream
+ * @return void
+ */
+function stream_thread_run_streamed_steps( Iterator $stream, OpenAI\Client $client ) : void {
 	foreach ( $stream as $step ) {
 		printf( "id: %s\n", $step->response->id ); // phpcs:ignore
 		echo "event: " . $step->event . "\n"; // phpcs:ignore
@@ -88,6 +105,24 @@ function stream_thread_messages( array $stream, OpenAI\Client $client ) : void {
 		flush();
 		wp_ob_end_flush_all();
 	}
+}
+
+function stream_error( WP_Error $error ) : void {
+	static $error_no = 0;
+	$error_no++;
+
+	printf( "id: %s\n", $error_no ); // phpcs:ignore
+	echo "event: error\n"; // phpcs:ignore
+	echo 'response: ' . wp_json_encode( $error ) . "\n\n";
+}
+
+function stream_exception( Exception $error ) : void {
+	static $error_no = 0;
+	$error_no++;
+
+	printf( "id: exception-%s\n", $error_no ); // phpcs:ignore
+	echo "event: error\n"; // phpcs:ignore
+	echo 'response: ' . wp_json_encode( new WP_Error( $error->getCode() ?: 'unknown-error', $error->getMessage() ) ) . "\n\n";
 }
 
 function my_assistant_get_callback( WP_REST_Request $request ) {
@@ -119,19 +154,45 @@ function my_assistant_get_callback( WP_REST_Request $request ) {
 function my_assistant_post_callback( WP_REST_Request $request ) {
 	$openai = $openai = OpenAI\Client::get_instance();
 	$assistant_id = get_option( 'ai_my_assistant_id' );
+
+	if ( ! $assistant_id ) {
+		$error = new WP_Error(
+			'no-assistant-created',
+			'No OpenAI Assistant has been created'
+		);
+		if ( $request['stream'] ) {
+			stream_error( $error );
+			exit;
+		} else {
+			return $error;
+		}
+	}
 	$thread_id = get_user_meta( 1, 'ai_my_assistant_thread_id', true );
 
 	$thread = new Thread( id: $thread_id );
-	$message = $openai->create_thread_message( new Thread_New_Message(
-		role: 'user',
-		thread_id: $thread->id,
-		content: $request['content'],
-	) );
+
+	try {
+		$message = $openai->create_thread_message( new Thread_New_Message(
+			role: 'user',
+			thread_id: $thread->id,
+			content: $request['content'],
+		) );
+	} catch ( Exception $e ) {
+		if ( $request['stream'] ) {
+			stream_exception( $e );
+			exit;
+		} else {
+			return new WP_Error(
+				'no-assistant-created',
+				'No OpenAI Assistant has been created'
+			);
+		}
+	}
 
 	if ( $request['stream'] ) {
 		start_stream();
 		stream_thread_messages( [ $message ], $openai );
-		stream_thread_run_steps( $thread->run( $assistant_id, $openai ), $openai );
+		stream_thread_run_streamed_steps( $thread->run( $assistant_id, $openai ), $openai );
 		exit;
 	} else {
 		$messages = [ $message ];
